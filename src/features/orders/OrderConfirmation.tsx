@@ -281,7 +281,7 @@ function PopSection({
         <div
           role="button"
           onClick={goToPartial}
-          className="w-full bg-white rounded-xl pl-3 pr-2 py-3 flex gap-4 items-center cursor-pointer"
+          className="w-full bg-white rounded-[16px] pl-3 pr-2 py-3 flex gap-3 items-start cursor-pointer"
         >
           {/* Thumbnail */}
           <div className="shrink-0 w-[68px] h-[68px] bg-[#f1f2f6] rounded-xl flex items-center justify-center overflow-hidden">
@@ -291,32 +291,27 @@ function PopSection({
           </div>
 
           {/* Content column */}
-          <div className="flex-1 min-w-0 flex flex-col gap-2 min-h-[88px] justify-center">
-            {/* Row 1: name + 3-dot */}
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-[#1e1e1e] leading-5">{name}</p>
-              <button
-                onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
-                className="size-[20px] flex flex-col items-center justify-center gap-[3px] shrink-0"
-                aria-label="Opciones"
-              >
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="w-[3px] h-[3px] rounded-full bg-[#1e1e1e]" />
-                ))}
-              </button>
-            </div>
-
-            {/* Row 2: expected qty */}
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <p className="text-sm font-semibold text-[#1e1e1e] leading-5">{name}</p>
             <p className="text-[12px] text-[#1e1e1e] leading-4">
               <span className="font-bold">Cantidad esperada</span>{' '}{line.expectedQty}
             </p>
-
-            {/* Row 3: confirmed qty */}
             <p className="text-sm text-[#1e1e1e] leading-5">
               <span className="font-bold">Confirmados</span>{' '}
               <span className="font-normal">{line.confirmedQty}</span>
             </p>
           </div>
+
+          {/* 3-dot button — inline, last child (same pattern as SerializableSection) */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
+            className="shrink-0 size-[20px] flex flex-col items-center justify-center gap-[3px]"
+            aria-label="Opciones"
+          >
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="w-[3px] h-[3px] rounded-full bg-[#1e1e1e]" />
+            ))}
+          </button>
         </div>
 
         {openMenu && (
