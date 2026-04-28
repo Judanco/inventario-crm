@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { Order, OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories, useConfirmSerialMutation, useConfirmPopMutation } from './hooks/useOrders'
 import { useConfirmationSession } from '../../store/confirmationSession'
+import { DropdownMenu } from '../../components/DropdownMenu'
 
 function truncateSerial(serial: string): string {
   return serial.slice(-6)
@@ -131,14 +132,6 @@ function SerializableSection({
     (s) => !line.confirmedSerials.includes(s),
   )
 
-  // Close menu on outside click
-  useEffect(() => {
-    if (!openMenuSerial) return
-    const handler = () => setOpenMenuSerial(null)
-    document.addEventListener('click', handler)
-    return () => document.removeEventListener('click', handler)
-  }, [openMenuSerial])
-
   const handleAdd = async () => {
     const trimmed = input.trim()
     if (!trimmed) return
@@ -207,25 +200,15 @@ function SerializableSection({
               </button>
             </div>
 
-            {/* Dropdown menu */}
             {openMenuSerial === serial && (
-              <div
-                className="absolute right-0 top-6 z-20 bg-white rounded-[12px] shadow-[0px_8px_20px_rgba(18,30,108,0.08)] flex flex-col gap-2.5 p-3 min-w-[200px]"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => { setOpenMenuSerial(null); setConfirmTarget({ serial, categoryName: name }) }}
-                  className="w-full h-10 px-3 py-2 rounded-[8px] text-right text-sm text-[#121e6c] hover:bg-[#f7f8fb]"
-                >
-                  Confirmar manualmente
-                </button>
-                <button
-                  onClick={() => setOpenMenuSerial(null)}
-                  className="w-full h-10 px-3 py-2 rounded-[8px] text-right text-sm text-[#121e6c] hover:bg-[#f7f8fb]"
-                >
-                  Reportar novedad
-                </button>
-              </div>
+              <DropdownMenu
+                className="absolute right-0 top-6 z-20"
+                onClose={() => setOpenMenuSerial(null)}
+                items={[
+                  { label: 'Confirmar manualmente', onClick: () => setConfirmTarget({ serial, categoryName: name }) },
+                  { label: 'Reportar novedad', onClick: () => {} },
+                ]}
+              />
             )}
           </div>
         ))}
@@ -281,24 +264,11 @@ function PopSection({
   onRequestConfirmAll: (target: ConfirmAllTarget) => void
 }) {
   const navigate = useNavigate()
-  const menuRef = useRef<HTMLDivElement>(null)
   const name = category?.name ?? line.categoryId
   const remaining = line.expectedQty - line.confirmedQty
 
   const goToPartial = () =>
     navigate(`/inventario/ordenes/${orderId}/confirmar/${line.id}/parcial`)
-
-  const handleConfirmAll = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onToggleMenu()
-    onRequestConfirmAll({ lineId: line.id, categoryName: name, remainingQty: remaining })
-  }
-
-  const handlePartialFromMenu = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onToggleMenu()
-    goToPartial()
-  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -349,44 +319,16 @@ function PopSection({
           </div>
         </div>
 
-        {/* Dropdown menu */}
         {openMenu && (
-          <div
-            ref={menuRef}
-            className="absolute right-2 top-2 z-20 bg-white rounded-2xl shadow-lg border border-[#f1f2f6] overflow-hidden min-w-[200px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleConfirmAll}
-              className="w-full px-4 py-3 text-left text-sm text-[#1e1e1e] flex items-center gap-3 hover:bg-[#f7f8fb]"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-green-600">
-                <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Confirmar todo
-            </button>
-            <div className="h-px bg-[#f1f2f6]" />
-            <button
-              onClick={handlePartialFromMenu}
-              className="w-full px-4 py-3 text-left text-sm text-[#1e1e1e] flex items-center gap-3 hover:bg-[#f7f8fb]"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#121e6c]">
-                <path d="M12 4l8 8-8 8M4 12h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Confirmar parcialmente
-            </button>
-            <div className="h-px bg-[#f1f2f6]" />
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
-              className="w-full px-4 py-3 text-left text-sm text-[#1e1e1e] flex items-center gap-3 hover:bg-[#f7f8fb]"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-amber-500">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              Reportar novedad
-            </button>
-          </div>
+          <DropdownMenu
+            className="absolute right-2 top-2 z-20"
+            onClose={onToggleMenu}
+            items={[
+              { label: 'Confirmar todo', onClick: () => onRequestConfirmAll({ lineId: line.id, categoryName: name, remainingQty: remaining }) },
+              { label: 'Confirmar parcialmente', onClick: goToPartial },
+              { label: 'Reportar novedad', onClick: () => {} },
+            ]}
+          />
         )}
       </div>
     </div>
@@ -493,14 +435,6 @@ export function OrderConfirmation() {
       clearPopToast()
     }
   }, [popToast])
-
-  // Close menu on outside click
-  useEffect(() => {
-    if (!openMenuLineId) return
-    const handler = () => setOpenMenuLineId(null)
-    document.addEventListener('click', handler)
-    return () => document.removeEventListener('click', handler)
-  }, [openMenuLineId])
 
   // Auto-dismiss toast
   useEffect(() => {
