@@ -34,22 +34,110 @@ function StatPill({ value, label }: { value: number; label: string }) {
 
 // ─── Serializable section ────────────────────────────────────────────────────
 
+interface ConfirmManualTarget {
+  serial: string
+  categoryName: string
+}
+
+function ConfirmManualModal({
+  target,
+  orderId,
+  lineId,
+  onSuccess,
+  onCancel,
+}: {
+  target: ConfirmManualTarget
+  orderId: string
+  lineId: string
+  onSuccess: () => void
+  onCancel: () => void
+}) {
+  const confirmSerial = useConfirmSerialMutation()
+
+  const handleConfirm = async () => {
+    await confirmSerial.mutateAsync({ orderId, lineId, serial: target.serial })
+    onSuccess()
+  }
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center px-8">
+      <div className="absolute inset-0 bg-black/70" onClick={onCancel} />
+      <div className="relative z-10 bg-white rounded-3xl w-full max-w-[280px] pb-8 pt-14 px-4 flex flex-col gap-6 shadow-xl">
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 w-6 h-6 flex items-center justify-center text-gray-400"
+          aria-label="Cerrar"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        <div className="flex flex-col gap-4 items-center">
+          <div className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v5M12 16h.01" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <p className="text-base font-semibold text-[#1e1e1e] text-center leading-5">
+            ¿Quieres confirmar este serial manualmente?
+          </p>
+          <p className="text-base font-normal text-[#1e1e1e] text-center leading-5">
+            Aceptarás que recibiste este serial y será tu responsabilidad desde este punto en adelante.
+          </p>
+          <p className="text-[12px] font-bold text-[#606060] text-center leading-4">
+            Serial: {target.categoryName} - {target.serial.slice(-5)}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleConfirm}
+            disabled={confirmSerial.isPending}
+            className="w-full h-10 bg-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-white disabled:opacity-50"
+          >
+            {confirmSerial.isPending ? 'Confirmando…' : 'Entendido'}
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full h-10 bg-white border border-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-[#ff2947]"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SerializableSection({
   orderId,
   line,
   category,
+  onShowToast,
 }: {
   orderId: string
   line: OrderLine
   category: ProductCategory | undefined
+  onShowToast: (msg: string) => void
 }) {
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [openMenuSerial, setOpenMenuSerial] = useState<string | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmManualTarget | null>(null)
   const confirmSerial = useConfirmSerialMutation()
 
   const pendingSerials = line.expectedSerials.filter(
     (s) => !line.confirmedSerials.includes(s),
   )
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!openMenuSerial) return
+    const handler = () => setOpenMenuSerial(null)
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [openMenuSerial])
 
   const handleAdd = async () => {
     const trimmed = input.trim()
@@ -95,20 +183,50 @@ function SerializableSection({
 
       <div className="flex flex-col gap-3">
         {pendingSerials.map((serial) => (
-          <div key={serial} className="bg-white rounded-2xl pl-3 pr-2 py-3 flex gap-3 items-center">
-            <div className="shrink-0 w-10 h-10">
-              {category && <img src={category.iconPath} alt={name} className="w-full h-full object-contain" />}
-            </div>
-            <div className="flex-1 min-w-0 flex flex-col gap-2">
-              <p className="text-sm font-bold text-[#121e6c] leading-5">{truncateSerial(serial)}</p>
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0" />
-                <span className="text-[12px] text-[#1e1e1e] leading-4">Sin confirmar</span>
+          <div key={serial} className="relative">
+            {/* Card */}
+            <div className="bg-white rounded-[16px] pl-3 pr-2 py-3 flex gap-3 items-start">
+              <div className="shrink-0 w-10 h-10 overflow-clip">
+                {category && <img src={category.iconPath} alt={name} className="w-full h-full object-contain" />}
               </div>
+              <div className="flex-1 min-w-0 flex flex-col gap-2">
+                <p className="text-sm font-bold text-[#121e6c] leading-5">{truncateSerial(serial)}</p>
+                <div className="flex items-center gap-0.5">
+                  <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-gray-400" />
+                  </span>
+                  <span className="text-[12px] text-[#1e1e1e] leading-4">Sin confirmar</span>
+                </div>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); setOpenMenuSerial((prev) => prev === serial ? null : serial) }}
+                className="shrink-0 w-6 h-6 flex flex-col items-center justify-center gap-[3px]"
+                aria-label="Opciones"
+              >
+                {[0, 1, 2].map((i) => <span key={i} className="w-1 h-1 rounded-full bg-[#1e1e1e]" />)}
+              </button>
             </div>
-            <div className="shrink-0 w-6 h-6 flex flex-col items-center justify-center gap-[3px]">
-              {[0, 1, 2].map((i) => <span key={i} className="w-1 h-1 rounded-full bg-gray-400" />)}
-            </div>
+
+            {/* Dropdown menu */}
+            {openMenuSerial === serial && (
+              <div
+                className="absolute right-0 top-6 z-20 bg-white rounded-[12px] shadow-[0px_8px_20px_rgba(18,30,108,0.08)] flex flex-col gap-2.5 p-3 min-w-[200px]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => { setOpenMenuSerial(null); setConfirmTarget({ serial, categoryName: name }) }}
+                  className="w-full h-10 px-3 py-2 rounded-[8px] text-right text-sm text-[#121e6c] hover:bg-[#f7f8fb]"
+                >
+                  Confirmar manualmente
+                </button>
+                <button
+                  onClick={() => setOpenMenuSerial(null)}
+                  className="w-full h-10 px-3 py-2 rounded-[8px] text-right text-sm text-[#121e6c] hover:bg-[#f7f8fb]"
+                >
+                  Reportar novedad
+                </button>
+              </div>
+            )}
           </div>
         ))}
 
@@ -121,6 +239,20 @@ function SerializableSection({
           </div>
         )}
       </div>
+
+      {/* Confirm manual modal */}
+      {confirmTarget && (
+        <ConfirmManualModal
+          target={confirmTarget}
+          orderId={orderId}
+          lineId={line.id}
+          onSuccess={() => {
+            setConfirmTarget(null)
+            onShowToast('Confirmaste manualmente un serial de la órden')
+          }}
+          onCancel={() => setConfirmTarget(null)}
+        />
+      )}
     </div>
   )
 }
@@ -473,6 +605,7 @@ export function OrderConfirmation() {
             orderId={order.id}
             line={line}
             category={categoryMap[line.categoryId]}
+            onShowToast={showToast}
           />
         ))}
       </div>
