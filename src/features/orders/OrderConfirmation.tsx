@@ -1,0 +1,488 @@
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import type { Order, OrderLine, ProductCategory } from '../../domain/types'
+import { useOrder, useCategories, useConfirmSerialMutation, useConfirmPopMutation } from './hooks/useOrders'
+
+function truncateSerial(serial: string): string {
+  return serial.slice(-6)
+}
+
+function orderStats(order: Order) {
+  let sinConfirmar = 0
+  let confirmados = 0
+  for (const line of order.lines) {
+    if (line.isSerializable) {
+      confirmados  += line.confirmedSerials.length
+      sinConfirmar += line.expectedSerials.length - line.confirmedSerials.length
+    } else {
+      confirmados  += line.confirmedQty
+      sinConfirmar += line.expectedQty - line.confirmedQty
+    }
+  }
+  return { sinConfirmar, confirmados, novedades: order.novelties.length }
+}
+
+function StatPill({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex-1 bg-white rounded-2xl flex flex-col gap-0.5 items-center justify-center p-3">
+      <span className="text-2xl font-semibold text-black leading-7">{value}</span>
+      <span className="text-[12px] text-black leading-4 text-center">{label}</span>
+    </div>
+  )
+}
+
+// ─── Serializable section ────────────────────────────────────────────────────
+
+function SerializableSection({
+  orderId,
+  line,
+  category,
+}: {
+  orderId: string
+  line: OrderLine
+  category: ProductCategory | undefined
+}) {
+  const [input, setInput] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const confirmSerial = useConfirmSerialMutation()
+
+  const pendingSerials = line.expectedSerials.filter(
+    (s) => !line.confirmedSerials.includes(s),
+  )
+
+  const handleAdd = async () => {
+    const trimmed = input.trim()
+    if (!trimmed) return
+    setError(null)
+    try {
+      await confirmSerial.mutateAsync({ orderId, lineId: line.id, serial: trimmed })
+      setInput('')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : ''
+      setError(msg === 'SERIAL_NOT_IN_ORDER' ? 'Serial no pertenece a esta orden.' : 'Error al confirmar.')
+    }
+  }
+
+  const name = category?.name ?? line.categoryId
+  const confirmed = line.confirmedSerials.length
+  const total = line.expectedSerials.length
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-sm font-semibold text-[#121e6c] leading-5">
+        {name} — {confirmed}/{total}
+      </h3>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => { setInput(e.target.value); setError(null) }}
+          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          placeholder="Ingresar serial"
+          className="flex-1 bg-white rounded-xl px-3 py-2 text-sm text-[#1e1e1e] outline-none border border-[#f1f2f6] focus:border-[#121e6c] placeholder:text-gray-400"
+        />
+        <button
+          onClick={handleAdd}
+          disabled={confirmSerial.isPending || !input.trim()}
+          className="shrink-0 bg-[#121e6c] text-white text-sm font-medium rounded-xl px-4 py-2 disabled:opacity-40"
+        >
+          {confirmSerial.isPending ? '…' : 'Agregar'}
+        </button>
+      </div>
+      {error && <p className="text-[12px] text-[#ff2947] leading-4">{error}</p>}
+
+      <div className="flex flex-col gap-3">
+        {pendingSerials.map((serial) => (
+          <div key={serial} className="bg-white rounded-2xl pl-3 pr-2 py-3 flex gap-3 items-center">
+            <div className="shrink-0 w-10 h-10">
+              {category && <img src={category.iconPath} alt={name} className="w-full h-full object-contain" />}
+            </div>
+            <div className="flex-1 min-w-0 flex flex-col gap-2">
+              <p className="text-sm font-bold text-[#121e6c] leading-5">{truncateSerial(serial)}</p>
+              <div className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0" />
+                <span className="text-[12px] text-[#1e1e1e] leading-4">Sin confirmar</span>
+              </div>
+            </div>
+            <div className="shrink-0 w-6 h-6 flex flex-col items-center justify-center gap-[3px]">
+              {[0, 1, 2].map((i) => <span key={i} className="w-1 h-1 rounded-full bg-gray-400" />)}
+            </div>
+          </div>
+        ))}
+
+        {pendingSerials.length === 0 && (
+          <div className="bg-white rounded-2xl px-3 py-4 flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-green-500 shrink-0">
+              <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p className="text-[12px] text-green-700 leading-4">Todos los seriales confirmados</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── PoP section ─────────────────────────────────────────────────────────────
+
+interface ConfirmAllTarget {
+  lineId: string
+  categoryName: string
+  remainingQty: number
+}
+
+function PopSection({
+  orderId,
+  line,
+  category,
+  openMenu,
+  onToggleMenu,
+  onRequestConfirmAll,
+}: {
+  orderId: string
+  line: OrderLine
+  category: ProductCategory | undefined
+  openMenu: boolean
+  onToggleMenu: () => void
+  onRequestConfirmAll: (target: ConfirmAllTarget) => void
+}) {
+  const navigate = useNavigate()
+  const menuRef = useRef<HTMLDivElement>(null)
+  const name = category?.name ?? line.categoryId
+  const remaining = line.expectedQty - line.confirmedQty
+
+  const goToPartial = () =>
+    navigate(`/inventario/ordenes/${orderId}/confirmar/${line.id}/parcial`)
+
+  const handleConfirmAll = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleMenu()
+    onRequestConfirmAll({ lineId: line.id, categoryName: name, remainingQty: remaining })
+  }
+
+  const handlePartialFromMenu = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleMenu()
+    goToPartial()
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-sm font-semibold text-[#121e6c] leading-5">
+        {name} — {line.confirmedQty}/{line.expectedQty}
+      </h3>
+
+      {/* Card — clickable div (avoids nested button HTML) */}
+      <div className="relative">
+        <div
+          role="button"
+          onClick={goToPartial}
+          className="w-full bg-white rounded-xl p-3 flex gap-4 items-center cursor-pointer"
+        >
+          {/* Thumbnail */}
+          <div className="shrink-0 w-[68px] h-[68px] bg-[#f1f2f6] rounded-xl flex items-center justify-center overflow-hidden">
+            {category && (
+              <img src={category.iconPath} alt={name} className="w-full h-full object-contain p-2" />
+            )}
+          </div>
+
+          {/* Content column */}
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            {/* Row 1: name + 3-dot */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-[#1e1e1e] leading-5">{name}</p>
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
+                className="size-[20px] flex flex-col items-center justify-center gap-[3px] shrink-0"
+                aria-label="Opciones"
+              >
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="w-[3px] h-[3px] rounded-full bg-[#1e1e1e]" />
+                ))}
+              </button>
+            </div>
+
+            {/* Row 2: expected qty */}
+            <p className="text-[12px] text-[#1e1e1e] leading-4">
+              <span className="font-bold">Cantidad esperada</span>{' '}{line.expectedQty}
+            </p>
+
+            {/* Row 3: confirmed qty */}
+            <p className="text-sm text-[#1e1e1e] leading-5">
+              <span className="font-bold">Confirmados</span>{' '}
+              <span className="font-normal">{line.confirmedQty}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Dropdown menu */}
+        {openMenu && (
+          <div
+            ref={menuRef}
+            className="absolute right-2 top-2 z-20 bg-white rounded-2xl shadow-lg border border-[#f1f2f6] overflow-hidden min-w-[200px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleConfirmAll}
+              className="w-full px-4 py-3 text-left text-sm text-[#1e1e1e] flex items-center gap-3 hover:bg-[#f7f8fb]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-green-600">
+                <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Confirmar todo
+            </button>
+            <div className="h-px bg-[#f1f2f6]" />
+            <button
+              onClick={handlePartialFromMenu}
+              className="w-full px-4 py-3 text-left text-sm text-[#1e1e1e] flex items-center gap-3 hover:bg-[#f7f8fb]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#121e6c]">
+                <path d="M12 4l8 8-8 8M4 12h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Confirmar parcialmente
+            </button>
+            <div className="h-px bg-[#f1f2f6]" />
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
+              className="w-full px-4 py-3 text-left text-sm text-[#1e1e1e] flex items-center gap-3 hover:bg-[#f7f8fb]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="shrink-0 text-amber-500">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              Reportar novedad
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Modal "Confirmar todo" ───────────────────────────────────────────────────
+
+function ConfirmAllModal({
+  target,
+  onConfirm,
+  onCancel,
+  isPending,
+}: {
+  target: ConfirmAllTarget
+  onConfirm: () => void
+  onCancel: () => void
+  isPending: boolean
+}) {
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center px-8">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/70" onClick={onCancel} />
+
+      {/* Modal card */}
+      <div className="relative z-10 bg-white rounded-3xl w-full max-w-[280px] pb-8 pt-14 px-4 flex flex-col gap-6 shadow-xl">
+        {/* Close */}
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 w-6 h-6 flex items-center justify-center text-gray-400"
+          aria-label="Cerrar"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        {/* Content */}
+        <div className="flex flex-col gap-4 items-center">
+          {/* Warning icon */}
+          <div className="w-9 h-9 rounded-full bg-amber-400 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8v5M12 16h.01" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+
+          <p className="text-base font-semibold text-[#1e1e1e] text-center leading-5">
+            ¿Quieres confirmar todo este material PoP?
+          </p>
+          <p className="text-base font-normal text-[#1e1e1e] text-center leading-5">
+            Aceptarás que recibiste la totalidad de estos artículos y serán tu responsabilidad desde este punto en adelante.
+          </p>
+          <p className="text-[12px] font-bold text-[#606060] text-center leading-4">
+            Artículo: {target.categoryName}<br />
+            Cantidad: {target.remainingQty}
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            className="w-full h-10 bg-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-white disabled:opacity-50"
+          >
+            {isPending ? 'Confirmando…' : 'Entendido'}
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full h-10 bg-white border border-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-[#ff2947]"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export function OrderConfirmation() {
+  const { orderId } = useParams<{ orderId: string }>()
+  const navigate = useNavigate()
+  const { data: order, isLoading, isError } = useOrder(orderId)
+  const { data: categories } = useCategories()
+  const confirmPop = useConfirmPopMutation()
+
+  const [openMenuLineId, setOpenMenuLineId] = useState<string | null>(null)
+  const [confirmAllTarget, setConfirmAllTarget] = useState<ConfirmAllTarget | null>(null)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!openMenuLineId) return
+    const handler = () => setOpenMenuLineId(null)
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
+  }, [openMenuLineId])
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toastMsg) return
+    const t = setTimeout(() => setToastMsg(null), 3000)
+    return () => clearTimeout(t)
+  }, [toastMsg])
+
+  const showToast = (msg: string) => setToastMsg(msg)
+
+  const handleConfirmAll = async () => {
+    if (!confirmAllTarget || !orderId) return
+    await confirmPop.mutateAsync({
+      orderId,
+      lineId: confirmAllTarget.lineId,
+      qty: confirmAllTarget.remainingQty,
+    })
+    setConfirmAllTarget(null)
+    showToast('Conteo confirmado exitosamente')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#f7f8fb] flex items-center justify-center text-sm text-gray-400">
+        Cargando…
+      </div>
+    )
+  }
+
+  if (isError || !order) {
+    return (
+      <div className="min-h-screen bg-[#f7f8fb] flex items-center justify-center text-sm text-[#ff2947]">
+        Error al cargar la orden.
+      </div>
+    )
+  }
+
+  const { sinConfirmar, confirmados, novedades } = orderStats(order)
+  const categoryMap = Object.fromEntries((categories ?? []).map((c) => [c.id, c]))
+
+  const pendingPopLines = order.lines.filter((l) => !l.isSerializable && l.confirmedQty < l.expectedQty)
+  const serialLines     = order.lines.filter((l) => l.isSerializable)
+
+  return (
+    <div className="min-h-screen bg-[#f7f8fb] flex flex-col">
+      {/* Toast */}
+      {toastMsg && (
+        <div className="fixed top-4 left-4 right-4 z-50 bg-green-500 text-white text-sm font-medium rounded-xl p-3 text-center shadow-lg transition-opacity">
+          {toastMsg}
+        </div>
+      )}
+
+      {/* Sticky header */}
+      <div className="sticky top-0 z-10 bg-[#f7f8fb] flex flex-col">
+        <div className="flex items-center justify-between px-3 py-4">
+          <button onClick={() => navigate(-1)} className="w-[102px] flex items-center" aria-label="Volver">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="#121e6c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <h1 className="flex-1 text-base font-bold text-[#121e6c] leading-5 text-center">
+            Confirmación de la órden
+          </h1>
+          <div className="w-[102px] flex justify-end pr-1">
+            <button aria-label="Escanear" className="w-6 h-6 flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="5" height="5" rx="1" stroke="#121e6c" strokeWidth="1.5" />
+                <rect x="16" y="3" width="5" height="5" rx="1" stroke="#121e6c" strokeWidth="1.5" />
+                <rect x="3" y="16" width="5" height="5" rx="1" stroke="#121e6c" strokeWidth="1.5" />
+                <path d="M16 16h5v5M16 21h5" stroke="#121e6c" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M3 12h18" stroke="#121e6c" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="bg-[#f7f8fb] px-4 pb-6 flex gap-2">
+          <StatPill value={sinConfirmar} label="Sin confirmar" />
+          <StatPill value={confirmados}  label="Confirmados"   />
+          <StatPill value={novedades}    label="Novedades"     />
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div className="flex-1 px-4 pb-32 flex flex-col gap-8">
+        {pendingPopLines.map((line) => (
+          <PopSection
+            key={line.id}
+            orderId={order.id}
+            line={line}
+            category={categoryMap[line.categoryId]}
+            openMenu={openMenuLineId === line.id}
+            onToggleMenu={() =>
+              setOpenMenuLineId((prev) => (prev === line.id ? null : line.id))
+            }
+            onRequestConfirmAll={(target) => setConfirmAllTarget(target)}
+          />
+        ))}
+
+        {serialLines.map((line) => (
+          <SerializableSection
+            key={line.id}
+            orderId={order.id}
+            line={line}
+            category={categoryMap[line.categoryId]}
+          />
+        ))}
+      </div>
+
+      {/* Bottom actions */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[rgba(247,248,251,0.9)] backdrop-blur-sm flex flex-col gap-2 px-[72px] py-5">
+        <button className="h-10 flex items-center justify-center text-sm font-medium text-[#121e6c]">
+          Reportar novedad general
+        </button>
+        <button
+          onClick={() => navigate(-1)}
+          className="h-10 bg-white rounded-[32px] border border-[#f1f2f6] flex items-center justify-center text-sm font-medium text-[#ff2947]"
+        >
+          Volver
+        </button>
+      </div>
+
+      {/* Modal "Confirmar todo" */}
+      {confirmAllTarget && (
+        <ConfirmAllModal
+          target={confirmAllTarget}
+          onConfirm={handleConfirmAll}
+          onCancel={() => setConfirmAllTarget(null)}
+          isPending={confirmPop.isPending}
+        />
+      )}
+    </div>
+  )
+}
