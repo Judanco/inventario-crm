@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { Order, OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories, useConfirmSerialMutation, useConfirmPopMutation } from './hooks/useOrders'
+import { useConfirmationSession } from '../../store/confirmationSession'
 
 function truncateSerial(serial: string): string {
   return serial.slice(-6)
@@ -341,10 +342,25 @@ export function OrderConfirmation() {
   const { data: order, isLoading, isError } = useOrder(orderId)
   const { data: categories } = useCategories()
   const confirmPop = useConfirmPopMutation()
+  const { startSession, endSession, popToast, clearPopToast } = useConfirmationSession()
 
   const [openMenuLineId, setOpenMenuLineId] = useState<string | null>(null)
   const [confirmAllTarget, setConfirmAllTarget] = useState<ConfirmAllTarget | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  // Start/end confirmation session
+  useEffect(() => {
+    if (orderId) startSession(orderId)
+    return () => endSession()
+  }, [orderId])
+
+  // Show toast from partial confirmation page
+  useEffect(() => {
+    if (popToast) {
+      showToast(popToast)
+      clearPopToast()
+    }
+  }, [popToast])
 
   // Close menu on outside click
   useEffect(() => {
