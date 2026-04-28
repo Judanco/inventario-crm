@@ -193,16 +193,16 @@ function SerializableSection({
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); setOpenMenuSerial((prev) => prev === serial ? null : serial) }}
-                className="shrink-0 w-6 h-6 flex flex-col items-center justify-center gap-[3px]"
+                className="shrink-0 size-[20px] flex flex-col items-center justify-center gap-[3px]"
                 aria-label="Opciones"
               >
-                {[0, 1, 2].map((i) => <span key={i} className="w-1 h-1 rounded-full bg-[#1e1e1e]" />)}
+                {[0, 1, 2].map((i) => <span key={i} className="w-[3px] h-[3px] rounded-full bg-[#1e1e1e]" />)}
               </button>
             </div>
 
             {openMenuSerial === serial && (
               <DropdownMenu
-                className="absolute right-0 top-6 z-20"
+                className="absolute right-3 top-9 z-20"
                 onClose={() => setOpenMenuSerial(null)}
                 items={[
                   { label: 'Confirmar manualmente', onClick: () => setConfirmTarget({ serial, categoryName: name }) },
@@ -281,7 +281,7 @@ function PopSection({
         <div
           role="button"
           onClick={goToPartial}
-          className="w-full bg-white rounded-xl p-3 flex gap-4 items-center cursor-pointer"
+          className="w-full bg-white rounded-xl pl-3 pr-2 py-3 flex gap-4 items-center cursor-pointer"
         >
           {/* Thumbnail */}
           <div className="shrink-0 w-[68px] h-[68px] bg-[#f1f2f6] rounded-xl flex items-center justify-center overflow-hidden">
@@ -291,7 +291,7 @@ function PopSection({
           </div>
 
           {/* Content column */}
-          <div className="flex-1 min-w-0 flex flex-col gap-2">
+          <div className="flex-1 min-w-0 flex flex-col gap-2 min-h-[88px] justify-center">
             {/* Row 1: name + 3-dot */}
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-[#1e1e1e] leading-5">{name}</p>
@@ -321,7 +321,7 @@ function PopSection({
 
         {openMenu && (
           <DropdownMenu
-            className="absolute right-2 top-2 z-20"
+            className="absolute right-3 top-9 z-20"
             onClose={onToggleMenu}
             items={[
               { label: 'Confirmar todo', onClick: () => onRequestConfirmAll({ lineId: line.id, categoryName: name, remainingQty: remaining }) },
