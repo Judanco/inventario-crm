@@ -155,6 +155,7 @@ function SerializableSection({
         {name} — {confirmed}/{total}
       </h3>
 
+      {/* TODO: input de serial + botón Agregar — comentado temporalmente
       <div className="flex gap-2">
         <input
           type="text"
@@ -173,6 +174,7 @@ function SerializableSection({
         </button>
       </div>
       {error && <p className="text-[12px] text-[#ff2947] leading-4">{error}</p>}
+      */}
 
       <div className="flex flex-col gap-3">
         {pendingSerials.map((serial) => (
@@ -416,6 +418,9 @@ export function OrderConfirmation() {
   const [openMenuLineId, setOpenMenuLineId] = useState<string | null>(null)
   const [confirmAllTarget, setConfirmAllTarget] = useState<ConfirmAllTarget | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  // Reset scroll on enter
+  useEffect(() => { window.scrollTo(0, 0) }, [])
 
   // Start/end confirmation session
   useEffect(() => {
