@@ -38,12 +38,6 @@ function orderStats(order: Order) {
   return { sinConfirmar, confirmados, novedades: order.novelties.length }
 }
 
-function orderTotalItems(order: Order): number {
-  return order.lines.reduce(
-    (sum, l) => sum + (l.isSerializable ? l.expectedSerials.length : l.expectedQty),
-    0,
-  )
-}
 
 function StatPill({ value, label }: { value: number; label: string }) {
   return (
@@ -193,11 +187,9 @@ export function OrderDetail() {
             <hr className="border-t border-[#f1f2f6]" />
             <DataRow label="Destino"              value={destLabel} />
             <hr className="border-t border-[#f1f2f6]" />
-            <DataRow label="Vencimiento"          value={formatDate(order.expirationDate)} />
+            <DataRow label="Vencimiento"     value={formatDate(order.expirationDate)} />
             <hr className="border-t border-[#f1f2f6]" />
-            <DataRow label="Cantidad de artículos" value={String(orderTotalItems(order))} />
-            <hr className="border-t border-[#f1f2f6]" />
-            <DataRow label="Número de orden"      value={order.orderNumber} />
+            <DataRow label="Número de orden" value={order.orderNumber} />
           </div>
         </div>
 
