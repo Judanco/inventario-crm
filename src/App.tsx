@@ -6,6 +6,7 @@ import { OrderList } from './features/orders/OrderList'
 import { OrderDetail } from './features/orders/OrderDetail'
 import { OrderConfirmation } from './features/orders/OrderConfirmation'
 import { PopPartialConfirmation } from './features/orders/PopPartialConfirmation'
+import { SerialScannerScreen } from './features/orders/SerialScannerScreen'
 import { AssignmentList } from './features/assignments/AssignmentList'
 import { MovementHistory } from './features/movements/MovementHistory'
 
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/inventario/ordenes/:orderId"            element={<OrderDetail />} />
             <Route path="/inventario/ordenes/:orderId/confirmar"  element={<OrderConfirmation />} />
             <Route path="/inventario/ordenes/:orderId/confirmar/:lineId/parcial" element={<PopPartialConfirmation />} />
+            <Route path="/inventario/ordenes/:orderId/confirmar/escanear" element={<SerialScannerScreen />} />
           </Route>
         </Routes>
       </BrowserRouter>

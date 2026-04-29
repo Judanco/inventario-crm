@@ -145,6 +145,8 @@ function SerializableSection({
     }
   }
 
+  if (pendingSerials.length === 0) return null
+
   const name = category?.name ?? line.categoryId
   const confirmed = line.confirmedSerials.length
   const total = line.expectedSerials.length
@@ -215,14 +217,6 @@ function SerializableSection({
           </div>
         ))}
 
-        {pendingSerials.length === 0 && (
-          <div className="bg-white rounded-2xl px-3 py-4 flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-green-500 shrink-0">
-              <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p className="text-[12px] text-green-700 leading-4">Todos los seriales confirmados</p>
-          </div>
-        )}
       </div>
 
       {/* Confirm manual modal */}
@@ -273,61 +267,54 @@ function PopSection({
     navigate(`/inventario/ordenes/${orderId}/confirmar/${line.id}/parcial`)
 
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold text-[#121e6c] leading-5">
-        {name} — {line.confirmedQty}/{line.expectedQty}
-      </h3>
-
-      {/* Card — clickable div (avoids nested button HTML) */}
-      <div className="relative">
-        <div
-          role="button"
-          onClick={goToPartial}
-          className="w-full bg-white rounded-[16px] pl-3 pr-2 py-3 flex gap-3 items-start cursor-pointer"
-        >
-          {/* Thumbnail */}
-          <div className="shrink-0 w-[68px] h-[68px] bg-[#f1f2f6] rounded-xl flex items-center justify-center overflow-hidden">
-            {category && (
-              <img src={category.iconPath} alt={name} className="w-full h-full object-contain p-2" />
-            )}
-          </div>
-
-          {/* Content column */}
-          <div className="flex-1 min-w-0 flex flex-col gap-2">
-            <p className="text-sm font-semibold text-[#1e1e1e] leading-5">{name}</p>
-            <p className="text-[12px] text-[#1e1e1e] leading-4">
-              <span className="font-bold">Cantidad esperada</span>{' '}{line.expectedQty}
-            </p>
-            <p className="text-sm text-[#1e1e1e] leading-5">
-              <span className="font-bold">Confirmados</span>{' '}
-              <span className="font-normal">{line.confirmedQty}</span>
-            </p>
-          </div>
-
-          {/* 3-dot button — inline, last child (same pattern as SerializableSection) */}
-          <button
-            onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
-            className="shrink-0 size-[20px] flex flex-col items-center justify-center gap-[3px]"
-            aria-label="Opciones"
-          >
-            {[0, 1, 2].map((i) => (
-              <span key={i} className="w-[3px] h-[3px] rounded-full bg-[#1e1e1e]" />
-            ))}
-          </button>
+    <div className="relative">
+      <div
+        role="button"
+        onClick={goToPartial}
+        className="w-full bg-white rounded-[16px] pl-3 pr-2 py-3 flex gap-3 items-start cursor-pointer"
+      >
+        {/* Thumbnail */}
+        <div className="shrink-0 w-[68px] h-[68px] bg-[#f1f2f6] rounded-xl flex items-center justify-center overflow-hidden">
+          {category && (
+            <img src={category.iconPath} alt={name} className="w-full h-full object-contain p-2" />
+          )}
         </div>
 
-        {openMenu && (
-          <DropdownMenu
-            className="absolute right-3 top-9 z-20"
-            onClose={onToggleMenu}
-            items={[
-              { label: 'Confirmar todo', onClick: () => onRequestConfirmAll({ lineId: line.id, categoryName: name, remainingQty: remaining }) },
-              { label: 'Confirmar parcialmente', onClick: goToPartial },
-              { label: 'Reportar novedad', onClick: () => {} },
-            ]}
-          />
-        )}
+        {/* Content column */}
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
+          <p className="text-sm font-semibold text-[#1e1e1e] leading-5">{name}</p>
+          <p className="text-[12px] text-[#1e1e1e] leading-4">
+            <span className="font-bold">Cantidad esperada</span>{' '}{line.expectedQty}
+          </p>
+          <p className="text-sm text-[#1e1e1e] leading-5">
+            <span className="font-bold">Confirmados</span>{' '}
+            <span className="font-normal">{line.confirmedQty}</span>
+          </p>
+        </div>
+
+        {/* 3-dot button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleMenu() }}
+          className="shrink-0 size-[20px] flex flex-col items-center justify-center gap-[3px]"
+          aria-label="Opciones"
+        >
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="w-[3px] h-[3px] rounded-full bg-[#1e1e1e]" />
+          ))}
+        </button>
       </div>
+
+      {openMenu && (
+        <DropdownMenu
+          className="absolute right-3 top-9 z-20"
+          onClose={onToggleMenu}
+          items={[
+            { label: 'Confirmar todo', onClick: () => onRequestConfirmAll({ lineId: line.id, categoryName: name, remainingQty: remaining }) },
+            { label: 'Confirmar parcialmente', onClick: goToPartial },
+            { label: 'Reportar novedad', onClick: () => {} },
+          ]}
+        />
+      )}
     </div>
   )
 }
@@ -477,6 +464,9 @@ export function OrderConfirmation() {
 
   const pendingPopLines = order.lines.filter((l) => !l.isSerializable && l.confirmedQty < l.expectedQty)
   const serialLines     = order.lines.filter((l) => l.isSerializable)
+  const hasPendingSerials = serialLines.some(
+    (l) => l.expectedSerials.length > l.confirmedSerials.length,
+  )
 
   return (
     <div className="min-h-screen bg-[#f7f8fb] flex flex-col">
@@ -499,7 +489,11 @@ export function OrderConfirmation() {
             Confirmación de la órden
           </h1>
           <div className="w-[102px] flex justify-end pr-1">
-            <button aria-label="Escanear" className="w-6 h-6 flex items-center justify-center">
+            <button
+              aria-label="Escanear"
+              onClick={hasPendingSerials ? () => navigate(`/inventario/ordenes/${orderId}/confirmar/escanear`) : undefined}
+              className={`w-6 h-6 flex items-center justify-center transition-opacity ${!hasPendingSerials ? 'opacity-50' : ''}`}
+            >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="3" width="5" height="5" rx="1" stroke="#121e6c" strokeWidth="1.5" />
                 <rect x="16" y="3" width="5" height="5" rx="1" stroke="#121e6c" strokeWidth="1.5" />
@@ -519,19 +513,26 @@ export function OrderConfirmation() {
 
       {/* Scrollable content */}
       <div className="flex-1 px-4 pb-32 flex flex-col gap-8">
-        {pendingPopLines.map((line) => (
-          <PopSection
-            key={line.id}
-            orderId={order.id}
-            line={line}
-            category={categoryMap[line.categoryId]}
-            openMenu={openMenuLineId === line.id}
-            onToggleMenu={() =>
-              setOpenMenuLineId((prev) => (prev === line.id ? null : line.id))
-            }
-            onRequestConfirmAll={(target) => setConfirmAllTarget(target)}
-          />
-        ))}
+        {pendingPopLines.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <h2 className="text-sm font-semibold text-[#121e6c] leading-5">Material PoP</h2>
+            <div className="flex flex-col gap-3">
+              {pendingPopLines.map((line) => (
+                <PopSection
+                  key={line.id}
+                  orderId={order.id}
+                  line={line}
+                  category={categoryMap[line.categoryId]}
+                  openMenu={openMenuLineId === line.id}
+                  onToggleMenu={() =>
+                    setOpenMenuLineId((prev) => (prev === line.id ? null : line.id))
+                  }
+                  onRequestConfirmAll={(target) => setConfirmAllTarget(target)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {serialLines.map((line) => (
           <SerializableSection

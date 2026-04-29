@@ -64,9 +64,9 @@ function LineCard({
   line: OrderLine
   category: ProductCategory | undefined
 }) {
-  const pending = line.isSerializable
-    ? line.expectedSerials.length - line.confirmedSerials.length
-    : line.expectedQty - line.confirmedQty
+  const confirmed = line.isSerializable
+    ? line.confirmedSerials.length
+    : line.confirmedQty
   const total = line.isSerializable ? line.expectedSerials.length : line.expectedQty
   const name = category?.name ?? line.categoryId
 
@@ -86,7 +86,7 @@ function LineCard({
           {total} {name}
         </p>
         <p className="text-[12px] text-[#1e1e1e] leading-4">
-          {pending}/{total} sin confirmar
+          {confirmed}/{total} confirmados
         </p>
       </div>
       <div className="shrink-0 w-6 h-6 flex items-center justify-center">

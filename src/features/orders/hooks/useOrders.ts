@@ -44,3 +44,20 @@ export function useConfirmPopMutation() {
     },
   })
 }
+
+export function useConfirmSerialsMutation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      serials,
+    }: { orderId: string; serials: Array<{ lineId: string; serial: string }> }) => {
+      for (const { lineId, serial } of serials) {
+        await confirmSerial(orderId, lineId, serial)
+      }
+    },
+    onSuccess: (_data, { orderId }) => {
+      qc.invalidateQueries({ queryKey: ['orders', orderId] })
+    },
+  })
+}
