@@ -51,6 +51,8 @@ export async function confirmSerial(orderId: string, lineId: string, serial: str
   }
   if (!line.confirmedSerials.includes(serial)) {
     line.confirmedSerials.push(serial)
+    const item = serializedItems.find((i) => i.serial === serial)
+    if (item) item.status = 'confirmado'
   }
   return { ...line }
 }
@@ -60,7 +62,12 @@ export async function confirmPopCount(orderId: string, lineId: string, qty: numb
   const order = orders.find((o) => o.id === orderId)
   const line = order?.lines.find((l) => l.id === lineId)
   if (!line) throw new Error('Line not found')
+  const actualQty = Math.min(qty, line.expectedQty - line.confirmedQty)
   line.confirmedQty = Math.min(line.confirmedQty + qty, line.expectedQty)
+  const batch = batches.find(
+    (b) => b.orderId === orderId && b.categoryId === line.categoryId && b.status === 'sinConfirmar',
+  )
+  if (batch) batch.quantity = Math.max(0, batch.quantity - actualQty)
   return { ...line }
 }
 

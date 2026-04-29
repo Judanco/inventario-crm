@@ -30,6 +30,7 @@ export function useConfirmSerialMutation() {
       confirmSerial(orderId, lineId, serial),
     onSuccess: (_data, { orderId }) => {
       qc.invalidateQueries({ queryKey: ['orders', orderId] })
+      qc.invalidateQueries({ queryKey: ['serializedItems'] })
     },
   })
 }
@@ -41,6 +42,7 @@ export function useConfirmPopMutation() {
       confirmPopCount(orderId, lineId, qty),
     onSuccess: (_data, { orderId }) => {
       qc.invalidateQueries({ queryKey: ['orders', orderId] })
+      qc.invalidateQueries({ queryKey: ['batches'] })
     },
   })
 }
@@ -58,6 +60,7 @@ export function useConfirmSerialsMutation() {
     },
     onSuccess: (_data, { orderId }) => {
       qc.invalidateQueries({ queryKey: ['orders', orderId] })
+      qc.invalidateQueries({ queryKey: ['serializedItems'] })
     },
   })
 }

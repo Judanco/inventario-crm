@@ -65,7 +65,7 @@ export const categories: ProductCategory[] = [
   {
     id: 'tarjeta',
     name: 'Tarjetas',
-    isSerializable: false,
+    isSerializable: true,
     unit: 'unidad',
     iconPath: '/assets/icons/tarjetas.png',
     lowStockThreshold: 50,
@@ -76,6 +76,22 @@ export const categories: ProductCategory[] = [
     isSerializable: false,
     unit: 'unidad',
     iconPath: '/assets/icons/material-pop.png',
+    lowStockThreshold: 10,
+  },
+  {
+    id: 'rollos',
+    name: 'Rollos de papel',
+    isSerializable: false,
+    unit: 'rollo',
+    iconPath: '/assets/icons/material-pop.png',
+    lowStockThreshold: 5,
+  },
+  {
+    id: 'bolsas',
+    name: 'Bolsas de empaque',
+    isSerializable: false,
+    unit: 'bolsa',
+    iconPath: '/assets/icons/tarjetas.png',
     lowStockThreshold: 10,
   },
 ]
@@ -96,6 +112,9 @@ export const serializedItems: SerializedItem[] = [
   { id: 'si-11', serial: '41001', categoryId: 'sonoqr',    status: 'disponible',   holderId: 'exec-001' },
   { id: 'si-12', serial: '41002', categoryId: 'sonoqr',    status: 'disponible',   holderId: 'exec-001' },
   { id: 'si-13', serial: '41003', categoryId: 'sonoqr',    status: 'conNovedad',   holderId: 'exec-001' },
+  { id: 'si-14', serial: 'TX001', categoryId: 'tarjeta',   status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-15', serial: 'TX002', categoryId: 'tarjeta',   status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-16', serial: 'TX003', categoryId: 'tarjeta',   status: 'disponible',   holderId: 'exec-001' },
 ]
 
 // ─── PoP batches ─────────────────────────────────────────────────────────────
@@ -105,6 +124,8 @@ export const batches: InventoryBatch[] = [
   { id: 'bt-2', categoryId: 'tarjeta', quantity: 15, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-001' },
   { id: 'bt-3', categoryId: 'pop',     quantity: 6,  status: 'disponible',   holderId: 'exec-001' },
   { id: 'bt-4', categoryId: 'pop',     quantity: 10, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-001' },
+  { id: 'bt-5', categoryId: 'rollos',  quantity: 8,  status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-003' },
+  { id: 'bt-6', categoryId: 'bolsas',  quantity: 12, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-003' },
 ]
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
@@ -164,6 +185,33 @@ export const orders: Order[] = [
         id: 'ol-5', categoryId: 'smart', isSerializable: true,
         expectedSerials: ['39001'], confirmedSerials: [],
         expectedQty: 0, confirmedQty: 0,
+      },
+    ],
+    novelties: [],
+  },
+  {
+    id: 'ORD-003',
+    type: 'InboundDelivery',
+    originType: 'provider',
+    originHolderId: 'tl-001',
+    originEmail: 'proveedor@bold.co',
+    destinationHolderId: 'exec-001',
+    destinationEmail: 'andres.p@bold.co',
+    destinationHubName: 'HUB Norte',
+    expirationDate: '2026-04-15T17:00:00',
+    receptionDate: '2026-04-10T10:00:00',
+    status: 'sinConfirmar',
+    orderNumber: 'IND00391',
+    lines: [
+      {
+        id: 'ol-6', categoryId: 'rollos', isSerializable: false,
+        expectedSerials: [], confirmedSerials: [],
+        expectedQty: 8, confirmedQty: 0,
+      },
+      {
+        id: 'ol-7', categoryId: 'bolsas', isSerializable: false,
+        expectedSerials: [], confirmedSerials: [],
+        expectedQty: 12, confirmedQty: 0,
       },
     ],
     novelties: [],

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useOrder, useCategories, useConfirmPopMutation } from './hooks/useOrders'
 import { useConfirmationSession } from '../../store/confirmationSession'
@@ -64,14 +64,23 @@ export function PopPartialConfirmation() {
   const { data: categories } = useCategories()
   const confirmPop = useConfirmPopMutation()
   const [qty, setQty] = useState(0)
+  const [initialQty, setInitialQty] = useState(0)
   const [showExitModal, setShowExitModal] = useState(false)
   const { setPendingPop, clearPendingPop, setPopToast } = useConfirmationSession()
 
   const line = order?.lines.find((l) => l.id === lineId)
   const category = categories?.find((c) => c.id === line?.categoryId)
 
+  // Sync to confirmedQty once the line loads (runs only on first load)
+  useEffect(() => {
+    if (line && initialQty === 0 && line.confirmedQty > 0) {
+      setInitialQty(line.confirmedQty)
+      setQty(line.confirmedQty)
+    }
+  }, [line])  // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleDecrement = () => {
-    const next = Math.max(0, qty - 1)
+    const next = Math.max(initialQty, qty - 1)
     setQty(next)
     if (lineId) setPendingPop(lineId, next)
   }
@@ -83,7 +92,7 @@ export function PopPartialConfirmation() {
   }
 
   const handleBack = () => {
-    if (qty > 0) {
+    if (qty !== initialQty) {
       setShowExitModal(true)
     } else {
       navigate(-1)
@@ -96,8 +105,9 @@ export function PopPartialConfirmation() {
   }
 
   const handleConfirm = async () => {
-    if (!orderId || !lineId || qty <= 0) return
-    await confirmPop.mutateAsync({ orderId, lineId, qty })
+    const delta = qty - initialQty
+    if (!orderId || !lineId || delta <= 0) return
+    await confirmPop.mutateAsync({ orderId, lineId, qty: delta })
     clearPendingPop(lineId)
     setPopToast('Conteo parcial confirmado exitosamente')
     navigate(-1)
@@ -154,7 +164,8 @@ export function PopPartialConfirmation() {
             <div className="bg-white rounded-full flex items-center gap-7 px-6 py-2">
               <button
                 onClick={handleDecrement}
-                className="w-6 h-6 flex items-center justify-center text-[#121e6c]"
+                disabled={qty <= initialQty}
+                className="w-6 h-6 flex items-center justify-center text-[#121e6c] disabled:opacity-30"
                 aria-label="Decrementar"
               >
                 <svg width="16" height="2" viewBox="0 0 16 2" fill="none">
@@ -166,7 +177,8 @@ export function PopPartialConfirmation() {
               </span>
               <button
                 onClick={handleIncrement}
-                className="w-6 h-6 flex items-center justify-center text-[#121e6c]"
+                disabled={qty >= line.expectedQty}
+                className="w-6 h-6 flex items-center justify-center text-[#121e6c] disabled:opacity-30"
                 aria-label="Incrementar"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -192,7 +204,7 @@ export function PopPartialConfirmation() {
 
       {/* Bottom actions — fixed */}
       <div className="fixed bottom-0 left-0 right-0 bg-[rgba(247,248,251,0.9)] backdrop-blur-sm flex flex-col gap-2 px-[72px] py-5">
-        {qty > 0 && (
+        {qty !== initialQty && (
           <button
             onClick={handleConfirm}
             disabled={confirmPop.isPending}

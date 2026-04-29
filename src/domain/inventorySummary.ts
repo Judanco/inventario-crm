@@ -33,5 +33,18 @@ export function computeInventoryOverview(
     return { category: cat, confirmedTotal, sinConfirmar, isLowStock }
   })
 
-  return { byCategory }
+  const serializable = byCategory.filter((s) => s.category.isSerializable)
+  const popEntries   = byCategory.filter((s) => !s.category.isSerializable)
+
+  if (popEntries.length === 0) return { byCategory: serializable }
+
+  const popRepresentative = categories.find((c) => c.id === 'pop') ?? popEntries[0].category
+  const popGrouped: CategoryInventorySummary = {
+    category: popRepresentative,
+    confirmedTotal: popEntries.reduce((sum, s) => sum + s.confirmedTotal, 0),
+    sinConfirmar:   popEntries.reduce((sum, s) => sum + s.sinConfirmar,   0),
+    isLowStock: false,
+  }
+
+  return { byCategory: [...serializable, popGrouped] }
 }
