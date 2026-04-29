@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Outlet, useMatch, useNavigate } from 'react-router-dom'
 import { useInventoryOverview } from './hooks/useInventory'
 import { NavTabs } from './components/NavTabs'
@@ -6,6 +7,7 @@ import { CategoryCard } from './components/CategoryCard'
 export function InventoryOverview() {
   const isRoot = useMatch('/inventario')
   const navigate = useNavigate()
+  const [fabOpen, setFabOpen] = useState(false)
 
   return (
     <div className="relative min-h-screen bg-[#f7f8fb] flex flex-col">
@@ -47,15 +49,31 @@ export function InventoryOverview() {
       </div>
 
       {/* FAB */}
-      <button
-        onClick={() => navigate('/inventario/asignaciones/nueva')}
-        className="fixed bottom-8 right-8 w-11 h-11 bg-[#ff2947] rounded-[32px] flex items-center justify-center shadow-lg"
-        aria-label="Nueva asignación"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
+      <div className="fixed bottom-8 right-8 flex flex-col items-end gap-2.5">
+        {fabOpen && (
+          <button
+            onClick={() => { setFabOpen(false); navigate('/inventario/asignaciones/nueva') }}
+            className="bg-[#ff2947] rounded-[32px] px-5 h-11 flex items-center justify-center text-white text-base font-bold shadow-lg whitespace-nowrap"
+          >
+            Reasignación
+          </button>
+        )}
+        <button
+          onClick={() => setFabOpen((prev) => !prev)}
+          className="w-11 h-11 bg-[#ff2947] rounded-[32px] flex items-center justify-center shadow-lg"
+          aria-label={fabOpen ? 'Cerrar menú' : 'Nueva asignación'}
+        >
+          {fabOpen ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v12M4 10h12" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          )}
+        </button>
+      </div>
     </div>
   )
 }

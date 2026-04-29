@@ -8,6 +8,7 @@ import { OrderConfirmation } from './features/orders/OrderConfirmation'
 import { PopPartialConfirmation } from './features/orders/PopPartialConfirmation'
 import { SerialScannerScreen } from './features/orders/SerialScannerScreen'
 import { AssignmentList } from './features/assignments/AssignmentList'
+import { NewAssignment } from './features/assignments/NewAssignment'
 import { MovementHistory } from './features/movements/MovementHistory'
 
 const queryClient = new QueryClient({
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/inventario/ordenes/:orderId/confirmar"  element={<OrderConfirmation />} />
             <Route path="/inventario/ordenes/:orderId/confirmar/:lineId/parcial" element={<PopPartialConfirmation />} />
             <Route path="/inventario/ordenes/:orderId/confirmar/escanear" element={<SerialScannerScreen />} />
+            <Route path="/inventario/asignaciones/nueva" element={<NewAssignment />} />
           </Route>
         </Routes>
       </BrowserRouter>
