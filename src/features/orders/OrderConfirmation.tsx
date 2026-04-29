@@ -4,24 +4,10 @@ import type { Order, OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories, useConfirmSerialMutation, useConfirmPopMutation } from './hooks/useOrders'
 import { useConfirmationSession } from '../../store/confirmationSession'
 import { DropdownMenu } from '../../components/DropdownMenu'
+import { orderStats } from './utils/orderStats'
 
 function truncateSerial(serial: string): string {
   return serial.slice(-6)
-}
-
-function orderStats(order: Order) {
-  let sinConfirmar = 0
-  let confirmados = 0
-  for (const line of order.lines) {
-    if (line.isSerializable) {
-      confirmados  += line.confirmedSerials.length
-      sinConfirmar += line.expectedSerials.length - line.confirmedSerials.length
-    } else {
-      confirmados  += line.confirmedQty
-      sinConfirmar += line.expectedQty - line.confirmedQty
-    }
-  }
-  return { sinConfirmar, confirmados, novedades: order.novelties.length }
 }
 
 function StatPill({ value, label }: { value: number; label: string }) {

@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import type { Order, OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories } from './hooks/useOrders'
+import { orderStats, deriveOrderStatus } from './utils/orderStats'
 
 const ORDER_TYPE_LABELS: Record<string, string> = {
   AbastecimientoHUB:     'Abastecimiento HUB',
@@ -10,32 +11,17 @@ const ORDER_TYPE_LABELS: Record<string, string> = {
 }
 
 const ORDER_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  sinConfirmar: { label: 'Sin confirmar', color: 'text-[#0a53a5]' },
-  enProgreso:   { label: 'En progreso',   color: 'text-amber-600'  },
-  confirmado:   { label: 'Confirmado',    color: 'text-green-700'  },
-  conNovedad:   { label: 'Con novedad',   color: 'text-amber-700'  },
-  devuelto:     { label: 'Devuelto',      color: 'text-purple-700' },
+  sinConfirmar:       { label: 'Sin confirmar',       color: 'text-[#0a53a5]' },
+  confirmacionParcial:{ label: 'Confirmación parcial',color: 'text-amber-600'  },
+  confirmado:         { label: 'Confirmado',           color: 'text-green-700'  },
+  conNovedad:         { label: 'Con novedad',          color: 'text-amber-700'  },
+  devuelto:           { label: 'Devuelto',             color: 'text-purple-700' },
 }
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
   const p = (n: number) => String(n).padStart(2, '0')
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} - ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
-}
-
-function orderStats(order: Order) {
-  let sinConfirmar = 0
-  let confirmados = 0
-  for (const line of order.lines) {
-    if (line.isSerializable) {
-      confirmados  += line.confirmedSerials.length
-      sinConfirmar += line.expectedSerials.length - line.confirmedSerials.length
-    } else {
-      confirmados  += line.confirmedQty
-      sinConfirmar += line.expectedQty - line.confirmedQty
-    }
-  }
-  return { sinConfirmar, confirmados, novedades: order.novelties.length }
 }
 
 
@@ -121,7 +107,8 @@ export function OrderDetail() {
   }
 
   const { sinConfirmar, confirmados, novedades } = orderStats(order)
-  const statusCfg = ORDER_STATUS_CONFIG[order.status] ?? { label: order.status, color: 'text-gray-600' }
+  const derivedStatus = deriveOrderStatus(order)
+  const statusCfg = ORDER_STATUS_CONFIG[derivedStatus] ?? { label: derivedStatus, color: 'text-gray-600' }
   const categoryMap = Object.fromEntries((categories ?? []).map((c) => [c.id, c]))
 
   const originLabel =

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import type { Order } from '../../domain/types'
 import { useOrderList } from './hooks/useOrders'
+import { deriveOrderStatus } from './utils/orderStats'
 
 const ORDER_TYPE_LABELS: Record<string, string> = {
   AbastecimientoHUB:     'Abastecimiento HUB',
@@ -9,12 +10,10 @@ const ORDER_TYPE_LABELS: Record<string, string> = {
   Reasignacion:          'Reasignación',
 }
 
-const ORDER_STATUS_LABELS: Record<string, string> = {
-  sinConfirmar: 'Sin confirmar',
-  enProgreso:   'En progreso',
-  confirmado:   'Confirmado',
-  conNovedad:   'Con novedad',
-  devuelto:     'Devuelto',
+const DERIVED_STATUS_CONFIG: Record<string, { label: string; dotColor: string }> = {
+  sinConfirmar:        { label: 'Sin confirmar',        dotColor: 'bg-[#0a53a5]' },
+  confirmacionParcial: { label: 'Confirmación parcial', dotColor: 'bg-amber-500'  },
+  confirmado:          { label: 'Confirmado',            dotColor: 'bg-green-600'  },
 }
 
 function formatDate(iso: string): string {
@@ -58,6 +57,8 @@ function SortIcon() {
 function OrderCard({ order }: { order: Order }) {
   const navigate = useNavigate()
   const total = orderTotalItems(order)
+  const derived = deriveOrderStatus(order)
+  const statusCfg = DERIVED_STATUS_CONFIG[derived]
 
   return (
     <button
@@ -85,9 +86,9 @@ function OrderCard({ order }: { order: Order }) {
         </div>
 
         <div className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full bg-gray-400 shrink-0" />
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${statusCfg.dotColor}`} />
           <span className="text-[12px] text-[#1e1e1e] leading-4">
-            {ORDER_STATUS_LABELS[order.status] ?? order.status}
+            {statusCfg.label}
           </span>
         </div>
 
@@ -122,29 +123,48 @@ export function OrderList() {
     )
   }
 
+  const activeOrders = orders.filter((o) => deriveOrderStatus(o) !== 'confirmado')
+
   return (
     <div className="flex flex-col gap-4">
       {/* Section header */}
       <div className="flex flex-col gap-2">
-        <h2 className="text-base font-bold text-[#121e6c] leading-5">Ordenes</h2>
-        <div className="flex items-center gap-2">
-          <p className="text-[12px] text-[#969696] leading-4">
-            Ordenado por <span className="font-bold">fecha de recepción</span>
-          </p>
-          <SortIcon />
-        </div>
-      </div>
-
-      {/* Order cards */}
-      <div className="flex flex-col gap-3">
-        {orders.map((order) => (
-          <OrderCard key={order.id} order={order} />
-        ))}
-
-        {orders.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-16">Sin órdenes pendientes.</p>
+        <h2 className="text-base font-bold text-[#121e6c] leading-5">Órdenes</h2>
+        {activeOrders.length > 0 && (
+          <div className="flex items-center gap-2">
+            <p className="text-[12px] text-[#969696] leading-4">
+              Ordenado por <span className="font-bold">fecha de recepción</span>
+            </p>
+            <SortIcon />
+          </div>
         )}
       </div>
+
+      {activeOrders.length === 0 ? (
+        <div className="flex flex-col items-center gap-6 pt-8">
+          <img
+            src="/assets/illustrations/ill-time-out.svg"
+            alt=""
+            className="w-24 h-24 object-contain"
+          />
+          <p className="text-sm text-[#1f2a74] text-center leading-5 px-0">
+            No tienes ordenes pendientes de confirmación o en tránsito.
+            Si necesitas reabastecer inventario genera una solicitud.
+          </p>
+          <button
+            onClick={() => {}}
+            className="bg-white rounded-[32px] px-5 h-10 text-sm font-medium text-[#ff2947] shadow-sm"
+          >
+            Generar solicitud
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {activeOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
