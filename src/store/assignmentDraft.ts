@@ -15,11 +15,14 @@ interface AssignmentDraftState {
   destinationHolderId: string
   serialLines: DraftSerialLine[]
   popLines: DraftPopLine[]
+  toast: string | null
 
   setDestination: (id: string, email: string) => void
   addSerial: (categoryId: string, serial: string) => void
   removeSerial: (categoryId: string, serial: string) => void
   setPopQty: (categoryId: string, qty: number) => void
+  setToast: (msg: string) => void
+  clearToast: () => void
   reset: () => void
 }
 
@@ -28,6 +31,7 @@ const empty = {
   destinationHolderId: '',
   serialLines: [] as DraftSerialLine[],
   popLines: [] as DraftPopLine[],
+  toast: null as string | null,
 }
 
 export const useAssignmentDraft = create<AssignmentDraftState>((set) => ({
@@ -78,5 +82,7 @@ export const useAssignmentDraft = create<AssignmentDraftState>((set) => ({
       return { popLines: [...s.popLines, { categoryId, quantity: qty }] }
     }),
 
+  setToast: (msg) => set({ toast: msg }),
+  clearToast: () => set({ toast: null }),
   reset: () => set(empty),
 }))
