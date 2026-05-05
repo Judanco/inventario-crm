@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useOrder, useCategories, useConfirmPopMutation } from './hooks/useOrders'
+import { useOrder, useConfirmPopMutation } from './hooks/useOrders'
 import { useConfirmationSession } from '../../store/confirmationSession'
 
 function ExitGuardModal({
@@ -61,7 +61,6 @@ export function PopPartialConfirmation() {
   const { orderId, lineId } = useParams<{ orderId: string; lineId: string }>()
   const navigate = useNavigate()
   const { data: order, isLoading } = useOrder(orderId)
-  const { data: categories } = useCategories()
   const confirmPop = useConfirmPopMutation()
   const [qty, setQty] = useState(0)
   const [initialQty, setInitialQty] = useState(0)
@@ -69,7 +68,6 @@ export function PopPartialConfirmation() {
   const { setPendingPop, clearPendingPop, setPopToast } = useConfirmationSession()
 
   const line = order?.lines.find((l) => l.id === lineId)
-  const category = categories?.find((c) => c.id === line?.categoryId)
 
   // Sync to confirmedQty once the line loads (runs only on first load)
   useEffect(() => {
@@ -120,8 +118,6 @@ export function PopPartialConfirmation() {
       </div>
     )
   }
-
-  const _name = category?.name ?? line.categoryId
 
   return (
     <div className="min-h-screen bg-[#f7f8fb] flex flex-col">

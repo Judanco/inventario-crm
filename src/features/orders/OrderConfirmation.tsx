@@ -108,28 +108,12 @@ function SerializableSection({
   category: ProductCategory | undefined
   onShowToast: (msg: string) => void
 }) {
-  const [input, setInput] = useState('')
-  const [, setError] = useState<string | null>(null)
   const [openMenuSerial, setOpenMenuSerial] = useState<string | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<ConfirmManualTarget | null>(null)
-  const confirmSerial = useConfirmSerialMutation()
 
   const pendingSerials = line.expectedSerials.filter(
     (s) => !line.confirmedSerials.includes(s),
   )
-
-  const _handleAdd = async () => {
-    const trimmed = input.trim()
-    if (!trimmed) return
-    setError(null)
-    try {
-      await confirmSerial.mutateAsync({ orderId, lineId: line.id, serial: trimmed })
-      setInput('')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : ''
-      setError(msg === 'SERIAL_NOT_IN_ORDER' ? 'Serial no pertenece a esta orden.' : 'Error al confirmar.')
-    }
-  }
 
   if (pendingSerials.length === 0) return null
 
