@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import type { Order, OrderLine, ProductCategory } from '../../domain/types'
+import type { OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories, useConfirmSerialMutation, useConfirmPopMutation } from './hooks/useOrders'
 import { useConfirmationSession } from '../../store/confirmationSession'
 import { DropdownMenu } from '../../components/DropdownMenu'
@@ -109,7 +109,7 @@ function SerializableSection({
   onShowToast: (msg: string) => void
 }) {
   const [input, setInput] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
   const [openMenuSerial, setOpenMenuSerial] = useState<string | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<ConfirmManualTarget | null>(null)
   const confirmSerial = useConfirmSerialMutation()
@@ -118,7 +118,7 @@ function SerializableSection({
     (s) => !line.confirmedSerials.includes(s),
   )
 
-  const handleAdd = async () => {
+  const _handleAdd = async () => {
     const trimmed = input.trim()
     if (!trimmed) return
     setError(null)

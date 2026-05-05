@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import type { Order, OrderLine, ProductCategory } from '../../domain/types'
+import type { OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories } from './hooks/useOrders'
 import { orderStats, deriveOrderStatus } from './utils/orderStats'
 

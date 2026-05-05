@@ -8,7 +8,7 @@ import {
   holders,
   CURRENT_USER_ID,
 } from './fixtures'
-import type { Order, OrderLine, Assignment, AssignmentLine } from '../domain/types'
+import type { Order, Assignment, AssignmentLine } from '../domain/types'
 
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
 

@@ -131,8 +131,8 @@ export function SerialScannerScreen() {
     return () => {
       isMounted.current = false
 
-      if (readerRef.current && typeof readerRef.current.reset === 'function') {
-        readerRef.current.reset()
+      if (readerRef.current && typeof (readerRef.current as unknown as Record<string, unknown>).reset === 'function') {
+        (readerRef.current as unknown as { reset: () => void }).reset()
       }
       readerRef.current = null
 

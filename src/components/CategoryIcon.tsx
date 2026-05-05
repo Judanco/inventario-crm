@@ -1,6 +1,6 @@
 import type { ProductCategory } from '../domain/types'
 
-const icons: Record<ProductCategory['icon'], React.ReactNode> = {
+const icons: Record<string, React.ReactNode> = {
   neo: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5">
       <rect x="5" y="2" width="14" height="20" rx="2" />
@@ -51,6 +51,6 @@ const icons: Record<ProductCategory['icon'], React.ReactNode> = {
   ),
 }
 
-export function CategoryIcon({ icon }: { icon: ProductCategory['icon'] }) {
+export function CategoryIcon({ icon }: { icon: string }) {
   return <>{icons[icon]}</>
 }

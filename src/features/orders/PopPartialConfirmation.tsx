@@ -121,7 +121,7 @@ export function PopPartialConfirmation() {
     )
   }
 
-  const name = category?.name ?? line.categoryId
+  const _name = category?.name ?? line.categoryId
 
   return (
     <div className="min-h-screen bg-[#f7f8fb] flex flex-col">
