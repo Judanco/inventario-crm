@@ -14,6 +14,7 @@ import { AssignDestino } from './features/assignments/AssignDestino'
 import { NewPopItem } from './features/assignments/NewPopItem'
 import { AssignSerialScanner } from './features/assignments/AssignSerialScanner'
 import { MovementHistory } from './features/movements/MovementHistory'
+import { HistorialDetail } from './features/movements/HistorialDetail'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/inventario/asignaciones/nueva/destino" element={<AssignDestino />} />
             <Route path="/inventario/asignaciones/nueva/pop" element={<NewPopItem />} />
             <Route path="/inventario/asignaciones/nueva/serial" element={<AssignSerialScanner />} />
+            <Route path="/inventario/historial/:entityType/:entityId" element={<HistorialDetail />} />
           </Route>
         </Routes>
       </BrowserRouter>

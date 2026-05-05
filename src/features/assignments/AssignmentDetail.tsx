@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { fetchAssignment, fetchCategories, deleteDraftAssignment } from '../../data/api'
+import { fetchAssignment, fetchCategories, updateAssignmentStatus } from '../../data/api'
 import { useAssignmentDraft } from '../../store/assignmentDraft'
 import type { AssignmentLine, ProductCategory } from '../../domain/types'
 
@@ -77,7 +77,7 @@ export function AssignmentDetail() {
   }
 
   async function handleCancel() {
-    await deleteDraftAssignment(assignmentId!)
+    await updateAssignmentStatus(assignmentId!, 'cancelada')
     queryClient.invalidateQueries({ queryKey: ['assignments'] })
     reset()
     navigate('/inventario/asignaciones')

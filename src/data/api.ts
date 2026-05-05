@@ -55,6 +55,7 @@ export async function confirmSerial(orderId: string, lineId: string, serial: str
     const item = serializedItems.find((i) => i.serial === serial)
     if (item) item.status = 'confirmado'
   }
+  if (order) order.updatedAt = new Date().toISOString()
   return { ...line }
 }
 
@@ -69,6 +70,7 @@ export async function confirmPopCount(orderId: string, lineId: string, qty: numb
     (b) => b.orderId === orderId && b.categoryId === line.categoryId && b.status === 'sinConfirmar',
   )
   if (batch) batch.quantity = Math.max(0, batch.quantity - actualQty)
+  if (order) order.updatedAt = new Date().toISOString()
   return { ...line }
 }
 
@@ -132,6 +134,7 @@ export async function updateAssignmentStatus(id: string, status: Assignment['sta
   const asgn = assignments.find((a) => a.id === id)
   if (!asgn) throw new Error('Assignment not found')
   asgn.status = status
+  asgn.updatedAt = new Date().toISOString()
   syncAssignments()
   return { ...asgn }
 }
@@ -203,4 +206,11 @@ export async function fetchMovements(holderId = CURRENT_USER_ID) {
       m.actorId === holderId
     )
   })
+}
+
+export async function fetchEntityMovements(entityId: string) {
+  await delay()
+  return movements
+    .filter((m) => m.entityId === entityId)
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
 }

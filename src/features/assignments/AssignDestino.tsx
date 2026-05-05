@@ -10,7 +10,7 @@ export function AssignDestino() {
   const { draftId, destinationHolderId, destinationEmail, setDestination, setToast } = useAssignmentDraft()
 
   const { data: allHolders = [] } = useQuery({ queryKey: ['holders'], queryFn: fetchHolders })
-  const { data: myAssignments = [] } = useQuery({
+  const { data: myAssignments = [], isLoading: loadingAssignments } = useQuery({
     queryKey: ['assignments'],
     queryFn: () => fetchAssignments(),
   })
@@ -74,7 +74,8 @@ export function AssignDestino() {
         <div className="relative">
           <button
             onClick={() => setOpen((prev) => !prev)}
-            className="w-full h-10 bg-white rounded-xl px-3 flex items-center justify-between"
+            disabled={loadingAssignments}
+            className="w-full h-10 bg-white rounded-xl px-3 flex items-center justify-between disabled:opacity-50"
           >
             <span className={selected ? 'text-sm font-medium text-[#1e1e1e]' : 'text-sm text-[#969696]'}>
               {selected ? selected.email : 'Elige una opción'}
@@ -89,15 +90,21 @@ export function AssignDestino() {
 
           {open && (
             <div className="absolute top-[44px] left-0 right-0 bg-white rounded-xl shadow-[0px_4px_16px_rgba(0,0,0,0.08)] z-10 overflow-hidden">
-              {executives.map((h, i) => (
-                <button
-                  key={h.id}
-                  onClick={() => { setSelected({ id: h.id, email: h.email }); setOpen(false) }}
-                  className={`w-full h-10 px-3 text-left text-sm text-[#121e6c] ${i === 0 ? 'bg-[#f7f8fb]' : 'bg-white'}`}
-                >
-                  {h.email}
-                </button>
-              ))}
+              {executives.map((h) => {
+                const blocked = activeAssignmentsByDestination.has(h.id)
+                return (
+                  <button
+                    key={h.id}
+                    disabled={blocked}
+                    onClick={() => { setSelected({ id: h.id, email: h.email }); setOpen(false) }}
+                    className="w-full h-10 px-3 flex items-center justify-between disabled:cursor-not-allowed"
+                  >
+                    <span className={`text-sm ${blocked ? 'text-[#c0c0c0]' : 'text-[#121e6c]'}`}>
+                      {h.email}
+                    </span>
+                  </button>
+                )
+              })}
               {executives.length === 0 && (
                 <div className="h-10 px-3 flex items-center text-sm text-[#969696]">
                   Sin ejecutivos disponibles

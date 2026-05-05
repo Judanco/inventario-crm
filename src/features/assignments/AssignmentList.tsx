@@ -24,7 +24,7 @@ function SortIcon() {
 export function AssignmentList() {
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['assignments'],
-    queryFn: fetchAssignments,
+    queryFn: () => fetchAssignments(),
   })
   const draftStore = useAssignmentDraft()
 
@@ -37,6 +37,8 @@ export function AssignmentList() {
         if (raw) base = JSON.parse(raw) as Assignment[]
       } catch {}
     }
+
+    base = base.filter((a) => a.status !== 'cancelada')
 
     const hasDraft = base.some((a) => a.status === 'enBorrador')
     if (!hasDraft && draftStore.draftId) {

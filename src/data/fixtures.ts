@@ -278,11 +278,68 @@ export const orders: Order[] = [
     ],
     novelties: [],
   },
+  {
+    id: 'ORD-004',
+    type: 'AbastecimientoHUB',
+    originType: 'provider',
+    originHolderId: 'tl-001',
+    originEmail: 'proveedor@bold.co',
+    destinationHolderId: 'exec-001',
+    destinationEmail: 'andres.p@bold.co',
+    destinationHubName: 'HUB Norte',
+    expirationDate: '2026-12-31T00:00:00',
+    receptionDate: '2026-04-10T08:00:00',
+    status: 'confirmado',
+    orderNumber: 'ABC19300',
+    lines: [
+      {
+        id: 'ol-8', categoryId: 'neo', isSerializable: true,
+        expectedSerials: ['38100', '38101', '38102'],
+        confirmedSerials: ['38100', '38101', '38102'],
+        expectedQty: 0, confirmedQty: 0,
+      },
+      {
+        id: 'ol-9', categoryId: 'pop', isSerializable: false,
+        expectedSerials: [], confirmedSerials: [],
+        expectedQty: 20, confirmedQty: 20,
+      },
+    ],
+    novelties: [],
+    updatedAt: '2026-04-22T16:45:00',
+  },
 ]
 
 // ─── Assignments ──────────────────────────────────────────────────────────────
 
-export const assignments: Assignment[] = []
+export const assignments: Assignment[] = [
+  {
+    id: 'ASGN-H001',
+    originHolderId: 'exec-001',
+    destinationHolderId: 'exec-002',
+    destinationEmail: 'maria.t@bold.co',
+    lines: [
+      { categoryId: 'neo', isSerializable: true, serials: ['37489'] },
+      { categoryId: 'pop', isSerializable: false, quantity: 5 },
+    ],
+    status: 'recibido',
+    createdAt: '2026-04-20T09:00:00',
+    expirationDate: '2026-04-27T23:59:59',
+    updatedAt: '2026-04-25T14:30:00',
+  },
+  {
+    id: 'ASGN-H002',
+    originHolderId: 'exec-001',
+    destinationHolderId: 'exec-003',
+    destinationEmail: 'carlos.m@bold.co',
+    lines: [
+      { categoryId: 'smart', isSerializable: true, serials: ['39001', '39002'] },
+    ],
+    status: 'cancelada',
+    createdAt: '2026-04-18T11:00:00',
+    expirationDate: '2026-04-25T23:59:59',
+    updatedAt: '2026-04-19T08:15:00',
+  },
+]
 
 // ─── Movements ────────────────────────────────────────────────────────────────
 
@@ -295,5 +352,77 @@ export const movements: Movement[] = [
     actorId: 'exec-002',
     eventType: 'created',
     payload: { orderNumber: 'RSG00423' },
+  },
+  {
+    id: 'mv-ord4-1',
+    entityType: 'order',
+    entityId: 'ORD-004',
+    timestamp: '2026-04-10T08:00:00',
+    actorId: 'tl-001',
+    eventType: 'recepcion',
+    payload: { orderNumber: 'ABC19300' },
+  },
+  {
+    id: 'mv-ord4-2a',
+    entityType: 'order',
+    entityId: 'ORD-004',
+    timestamp: '2026-04-15T10:15:00',
+    actorId: 'exec-001',
+    eventType: 'confirmacion',
+    payload: { serial: '38100', categoryLabel: 'Neo' },
+  },
+  {
+    id: 'mv-ord4-2b',
+    entityType: 'order',
+    entityId: 'ORD-004',
+    timestamp: '2026-04-15T10:20:00',
+    actorId: 'exec-001',
+    eventType: 'confirmacion',
+    payload: { serial: '38101', categoryLabel: 'Neo' },
+  },
+  {
+    id: 'mv-ord4-2c',
+    entityType: 'order',
+    entityId: 'ORD-004',
+    timestamp: '2026-04-15T10:25:00',
+    actorId: 'exec-001',
+    eventType: 'confirmacion',
+    payload: { serial: '38102', categoryLabel: 'Neo' },
+  },
+  {
+    id: 'mv-ord4-2d',
+    entityType: 'order',
+    entityId: 'ORD-004',
+    timestamp: '2026-04-15T10:30:00',
+    actorId: 'exec-001',
+    eventType: 'confirmacion',
+    payload: { qty: 20, categoryLabel: 'Material PoP' },
+  },
+  {
+    id: 'mv-ord4-3',
+    entityType: 'order',
+    entityId: 'ORD-004',
+    timestamp: '2026-04-22T16:45:00',
+    actorId: 'tl-001',
+    eventType: 'vencimiento',
+    payload: { autoConfirmed: true },
+  },
+  {
+    id: 'mv-h002-1',
+    entityType: 'assignment',
+    entityId: 'ASGN-H002',
+    timestamp: '2026-04-18T11:00:00',
+    actorId: 'exec-001',
+    eventType: 'creacion',
+    payload: {},
+  },
+  {
+    id: 'mv-h002-2',
+    entityType: 'assignment',
+    entityId: 'ASGN-H002',
+    timestamp: '2026-04-19T08:15:00',
+    actorId: 'exec-001',
+    eventType: 'cancelada',
+    payload: {},
   },
 ]
