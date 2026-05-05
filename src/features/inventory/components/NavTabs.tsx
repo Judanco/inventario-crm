@@ -10,14 +10,14 @@ const TABS = [
   },
   {
     to: '/inventario/ordenes',
-    label: 'Ordenes',
+    label: 'Recibidos',
     imgSelected: '/assets/tabs/ordenes.png',
     imgUnselected: '/assets/tabs/ordenes.png',
     end: false,
   },
   {
     to: '/inventario/asignaciones',
-    label: 'Asignaciones',
+    label: 'Enviados',
     imgSelected: '/assets/tabs/asignaciones.png',
     imgUnselected: '/assets/tabs/asignaciones.png',
     end: false,

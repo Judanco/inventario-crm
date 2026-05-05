@@ -66,21 +66,33 @@ export function AssignmentList() {
   return (
     <div className="flex flex-col gap-4">
       {/* Section header */}
-      <div className="flex flex-col gap-2">
-        <h2 className="text-base font-bold text-[#121e6c] leading-5">Asignaciones</h2>
-        {displayItems.length > 0 && (
+      {displayItems.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-base font-bold text-[#121e6c] leading-5">Enviados</h2>
           <div className="flex items-center gap-2">
             <p className="text-[12px] text-[#969696] leading-4">
               Ordenado por <span className="font-bold">fecha de envío</span>
             </p>
             <SortIcon />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {displayItems.length === 0 ? (
-        <div className="flex items-center justify-center py-16 text-sm text-gray-400">
-          Sin asignaciones.
+        <div className="flex flex-col items-center pt-16 gap-6">
+          <div className="flex flex-col gap-3 items-center text-center w-full">
+            <p className="text-base font-semibold text-[#121e6c] leading-5">
+              ¡Aún no tienes asignaciones!
+            </p>
+            <p className="text-sm font-normal text-[#1e1e1e] leading-5">
+              Cuando las hagas, podrás verlo aquí.
+            </p>
+          </div>
+          <img
+            src="/assets/illustrations/ill-time-out.svg"
+            alt=""
+            className="w-24 h-24 object-contain"
+          />
         </div>
       ) : (
         <div className="flex flex-col gap-3">

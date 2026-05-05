@@ -13,10 +13,40 @@ export const CURRENT_USER_ID = 'exec-001'
 // ─── Holders ─────────────────────────────────────────────────────────────────
 
 export const holders: Holder[] = [
-  { id: 'exec-001', name: 'Restaurante Andrés P', email: 'andres.p@bold.co', role: 'executive' },
-  { id: 'exec-002', name: 'María Torres',         email: 'maria.t@bold.co',  role: 'executive' },
-  { id: 'exec-003', name: 'Carlos Mendez',        email: 'carlos.m@bold.co', role: 'executive' },
-  { id: 'tl-001',   name: 'Team Lead HUB',        email: 'hub@bold.co',      role: 'teamlead'  },
+  { id: 'exec-001', name: 'Restaurante Andrés P', email: 'andres.p@bold.co',    role: 'executive' },
+  { id: 'exec-002', name: 'María Torres',         email: 'maria.t@bold.co',     role: 'executive' },
+  { id: 'exec-003', name: 'Carlos Mendez',        email: 'carlos.m@bold.co',    role: 'executive' },
+  { id: 'exec-004', name: 'Laura Gómez',          email: 'laura.g@bold.co',     role: 'executive' },
+  { id: 'exec-005', name: 'Felipe Rojas',         email: 'felipe.r@bold.co',    role: 'executive' },
+  { id: 'exec-006', name: 'Valentina Cruz',       email: 'valentina.c@bold.co', role: 'executive' },
+  { id: 'exec-007', name: 'Sebastián Herrera',    email: 'sebastian.h@bold.co', role: 'executive' },
+  { id: 'exec-008', name: 'Camila Vargas',        email: 'camila.v@bold.co',    role: 'executive' },
+  { id: 'exec-009', name: 'Andrés Morales',       email: 'andres.m@bold.co',    role: 'executive' },
+  { id: 'exec-010', name: 'Diana Castillo',       email: 'diana.c@bold.co',     role: 'executive' },
+  { id: 'exec-011', name: 'Mateo Jiménez',        email: 'mateo.j@bold.co',     role: 'executive' },
+  { id: 'exec-012', name: 'Sofía Ramírez',        email: 'sofia.r@bold.co',     role: 'executive' },
+  { id: 'exec-013', name: 'Nicolás Peña',         email: 'nicolas.p@bold.co',   role: 'executive' },
+  { id: 'exec-014', name: 'Isabella Mora',        email: 'isabella.m@bold.co',  role: 'executive' },
+  { id: 'exec-015', name: 'Tomás Guerrero',       email: 'tomas.g@bold.co',     role: 'executive' },
+  { id: 'exec-016', name: 'Daniela Ríos',         email: 'daniela.r@bold.co',   role: 'executive' },
+  { id: 'exec-017', name: 'Santiago Ortiz',       email: 'santiago.o@bold.co',  role: 'executive' },
+  { id: 'exec-018', name: 'Mariana Silva',        email: 'mariana.s@bold.co',   role: 'executive' },
+  { id: 'exec-019', name: 'Julián Medina',        email: 'julian.m@bold.co',    role: 'executive' },
+  { id: 'exec-020', name: 'Alejandra Ruiz',       email: 'alejandra.r@bold.co', role: 'executive' },
+  { id: 'exec-021', name: 'Miguel Ángel Suárez',  email: 'miguel.s@bold.co',    role: 'executive' },
+  { id: 'exec-022', name: 'Gabriela Flores',      email: 'gabriela.f@bold.co',  role: 'executive' },
+  { id: 'exec-023', name: 'Esteban Cárdenas',     email: 'esteban.c@bold.co',   role: 'executive' },
+  { id: 'exec-024', name: 'Natalia Bermúdez',     email: 'natalia.b@bold.co',   role: 'executive' },
+  { id: 'exec-025', name: 'Mauricio León',        email: 'mauricio.l@bold.co',  role: 'executive' },
+  { id: 'exec-026', name: 'Paola Aguilar',        email: 'paola.a@bold.co',     role: 'executive' },
+  { id: 'exec-027', name: 'Rodrigo Salazar',      email: 'rodrigo.s@bold.co',   role: 'executive' },
+  { id: 'exec-028', name: 'Carolina Pizarro',     email: 'carolina.p@bold.co',  role: 'executive' },
+  { id: 'exec-029', name: 'Cristian Vega',        email: 'cristian.v@bold.co',  role: 'executive' },
+  { id: 'exec-030', name: 'Lucía Montoya',        email: 'lucia.m@bold.co',     role: 'executive' },
+  { id: 'exec-031', name: 'Pablo Acosta',         email: 'pablo.a@bold.co',     role: 'executive' },
+  { id: 'exec-032', name: 'Verónica Espinosa',    email: 'veronica.e@bold.co',  role: 'executive' },
+  { id: 'exec-033', name: 'Ricardo Palacios',     email: 'ricardo.p@bold.co',   role: 'executive' },
+  { id: 'tl-001',   name: 'Team Lead HUB',        email: 'hub@bold.co',         role: 'teamlead'  },
 ]
 
 // ─── Product categories (data-driven — adding a new one here is enough) ───────
@@ -79,6 +109,30 @@ export const categories: ProductCategory[] = [
     lowStockThreshold: 10,
   },
   {
+    id: 'estuches',
+    name: 'Estuches',
+    isSerializable: false,
+    unit: 'unidad',
+    iconPath: '/assets/icons/material-pop.png',
+    lowStockThreshold: 5,
+  },
+  {
+    id: 'sombrillas',
+    name: 'Sombrillas',
+    isSerializable: false,
+    unit: 'unidad',
+    iconPath: '/assets/icons/material-pop.png',
+    lowStockThreshold: 5,
+  },
+  {
+    id: 'rollos-impresion',
+    name: 'Rollos de impresión',
+    isSerializable: false,
+    unit: 'rollo',
+    iconPath: '/assets/icons/material-pop.png',
+    lowStockThreshold: 5,
+  },
+  {
     id: 'rollos',
     name: 'Rollos de papel',
     isSerializable: false,
@@ -115,6 +169,11 @@ export const serializedItems: SerializedItem[] = [
   { id: 'si-14', serial: 'TX001', categoryId: 'tarjeta',   status: 'disponible',   holderId: 'exec-001' },
   { id: 'si-15', serial: 'TX002', categoryId: 'tarjeta',   status: 'disponible',   holderId: 'exec-001' },
   { id: 'si-16', serial: 'TX003', categoryId: 'tarjeta',   status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-17', serial: '38203', categoryId: 'neo',       status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-18', serial: '38204', categoryId: 'neo',       status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-19', serial: '38301', categoryId: 'plus',      status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-20', serial: '39004', categoryId: 'smart',     status: 'disponible',   holderId: 'exec-001' },
+  { id: 'si-21', serial: '40003', categoryId: 'smart-pro', status: 'disponible',   holderId: 'exec-001' },
 ]
 
 // ─── PoP batches ─────────────────────────────────────────────────────────────
@@ -122,10 +181,13 @@ export const serializedItems: SerializedItem[] = [
 export const batches: InventoryBatch[] = [
   { id: 'bt-1', categoryId: 'tarjeta', quantity: 30, status: 'disponible',   holderId: 'exec-001' },
   { id: 'bt-2', categoryId: 'tarjeta', quantity: 15, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-001' },
-  { id: 'bt-3', categoryId: 'pop',     quantity: 6,  status: 'disponible',   holderId: 'exec-001' },
-  { id: 'bt-4', categoryId: 'pop',     quantity: 10, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-001' },
-  { id: 'bt-5', categoryId: 'rollos',  quantity: 8,  status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-003' },
-  { id: 'bt-6', categoryId: 'bolsas',  quantity: 12, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-003' },
+  { id: 'bt-3', categoryId: 'pop',              quantity: 6,  status: 'disponible',   holderId: 'exec-001' },
+  { id: 'bt-4', categoryId: 'pop',              quantity: 10, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-001' },
+  { id: 'bt-5', categoryId: 'rollos',           quantity: 8,  status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-003' },
+  { id: 'bt-6', categoryId: 'bolsas',           quantity: 12, status: 'sinConfirmar', holderId: 'exec-001', orderId: 'ORD-003' },
+  { id: 'bt-7', categoryId: 'estuches',          quantity: 10, status: 'disponible',   holderId: 'exec-001' },
+  { id: 'bt-8', categoryId: 'sombrillas',        quantity: 2,  status: 'disponible',   holderId: 'exec-001' },
+  { id: 'bt-9', categoryId: 'rollos-impresion',  quantity: 3,  status: 'disponible',   holderId: 'exec-001' },
 ]
 
 // ─── Orders ───────────────────────────────────────────────────────────────────
@@ -220,33 +282,11 @@ export const orders: Order[] = [
 
 // ─── Assignments ──────────────────────────────────────────────────────────────
 
-export const assignments: Assignment[] = [
-  {
-    id: 'ASGN-001',
-    originHolderId: 'exec-001',
-    destinationHolderId: 'exec-003',
-    destinationEmail: 'carlos.m@bold.co',
-    lines: [
-      { categoryId: 'plus', isSerializable: true,  serials: ['38990'] },
-    ],
-    status: 'enTransito',
-    createdAt: '2026-04-27T09:00:00',
-    expirationDate: '2026-04-30T23:59:59',
-  },
-]
+export const assignments: Assignment[] = []
 
 // ─── Movements ────────────────────────────────────────────────────────────────
 
 export const movements: Movement[] = [
-  {
-    id: 'mv-1',
-    entityType: 'assignment',
-    entityId: 'ASGN-001',
-    timestamp: '2026-04-27T09:00:00',
-    actorId: 'exec-001',
-    eventType: 'assigned',
-    payload: { destinationEmail: 'carlos.m@bold.co', itemCount: 1 },
-  },
   {
     id: 'mv-2',
     entityType: 'order',

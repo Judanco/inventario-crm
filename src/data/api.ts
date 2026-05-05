@@ -38,7 +38,8 @@ export async function fetchOrders(holderId = CURRENT_USER_ID) {
 
 export async function fetchOrder(orderId: string) {
   await delay()
-  return orders.find((o) => o.id === orderId) ?? null
+  const order = orders.find((o) => o.id === orderId)
+  return order ? structuredClone(order) : null
 }
 
 export async function confirmSerial(orderId: string, lineId: string, serial: string) {

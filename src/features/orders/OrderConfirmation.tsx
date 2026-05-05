@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { Order, OrderLine, ProductCategory } from '../../domain/types'
 import { useOrder, useCategories, useConfirmSerialMutation, useConfirmPopMutation } from './hooks/useOrders'
@@ -392,6 +392,11 @@ export function OrderConfirmation() {
   const [confirmAllTarget, setConfirmAllTarget] = useState<ConfirmAllTarget | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
+  const sinConfirmarReactive = useMemo(
+    () => (order ? orderStats(order).sinConfirmar : -1),
+    [order],
+  )
+
   // Reset scroll on enter
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
@@ -400,6 +405,13 @@ export function OrderConfirmation() {
     if (orderId) startSession(orderId)
     return () => endSession()
   }, [orderId])
+
+  // Redirect back to detail when all items are confirmed
+  useEffect(() => {
+    if (sinConfirmarReactive !== 0) return
+    const t = setTimeout(() => navigate(`/inventario/ordenes/${orderId}`), 800)
+    return () => clearTimeout(t)
+  }, [sinConfirmarReactive])
 
   // Show toast from partial confirmation page
   useEffect(() => {
@@ -456,6 +468,14 @@ export function OrderConfirmation() {
 
   return (
     <div className="min-h-screen bg-[#f7f8fb] flex flex-col">
+      {/* Processing overlay — shown while waiting to redirect after full confirmation */}
+      {sinConfirmarReactive === 0 && (
+        <div className="fixed inset-0 z-50 bg-[#f7f8fb] flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#121e6c] border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-medium text-[#121e6c]">Procesando confirmación…</p>
+        </div>
+      )}
+
       {/* Toast */}
       {toastMsg && (
         <div className="fixed top-4 left-4 right-4 z-50 bg-green-500 text-white text-sm font-medium rounded-xl p-3 text-center shadow-lg transition-opacity">

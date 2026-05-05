@@ -157,7 +157,7 @@ export function PopPartialConfirmation() {
         {/* Cantidad recibida — stepper */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-[#121e6c] leading-5">
-            Cantidad recibida
+            Cantidad confirmada
             <span className="text-[#ff2947] ml-0.5">*</span>
           </label>
           <div className="flex justify-center">

@@ -86,7 +86,7 @@ export interface Order {
 
 // ─── Assignments (outbound) ───────────────────────────────────────────────────
 
-export type AssignmentStatus = 'pendiente' | 'enTransito' | 'recibido' | 'devuelto'
+export type AssignmentStatus = 'enBorrador' | 'pendiente' | 'enTransito' | 'recibido' | 'devuelto'
 
 export interface AssignmentLine {
   categoryId: string
@@ -98,12 +98,12 @@ export interface AssignmentLine {
 export interface Assignment {
   id: string
   originHolderId: string
-  destinationHolderId: string
-  destinationEmail: string
+  destinationHolderId: string | null
+  destinationEmail: string | null
   lines: AssignmentLine[]
   status: AssignmentStatus
   createdAt: string
-  expirationDate?: string
+  expirationDate?: string | null
 }
 
 // ─── Movements ───────────────────────────────────────────────────────────────

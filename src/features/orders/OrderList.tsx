@@ -128,35 +128,33 @@ export function OrderList() {
   return (
     <div className="flex flex-col gap-4">
       {/* Section header */}
-      <div className="flex flex-col gap-2">
-        <h2 className="text-base font-bold text-[#121e6c] leading-5">Órdenes</h2>
-        {activeOrders.length > 0 && (
+      {activeOrders.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-base font-bold text-[#121e6c] leading-5">Recibidos</h2>
           <div className="flex items-center gap-2">
             <p className="text-[12px] text-[#969696] leading-4">
               Ordenado por <span className="font-bold">fecha de recepción</span>
             </p>
             <SortIcon />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {activeOrders.length === 0 ? (
-        <div className="flex flex-col items-center gap-6 pt-8">
+        <div className="flex flex-col items-center gap-6 pt-16">
+          <div className="flex flex-col gap-3 items-center text-center w-full">
+            <p className="text-base font-semibold text-[#121e6c] leading-5">
+              ¡Estás al día con tu inventario por confirmar!
+            </p>
+            <p className="text-sm font-normal text-[#1e1e1e] leading-5">
+              No tienes movimientos en tránsito o por confirmar. Si necesitas más inventario, genera una solicitud.
+            </p>
+          </div>
           <img
             src="/assets/illustrations/ill-time-out.svg"
             alt=""
             className="w-24 h-24 object-contain"
           />
-          <p className="text-sm text-[#1f2a74] text-center leading-5 px-0">
-            No tienes ordenes pendientes de confirmación o en tránsito.
-            Si necesitas reabastecer inventario genera una solicitud.
-          </p>
-          <button
-            onClick={() => {}}
-            className="bg-white rounded-[32px] px-5 h-10 text-sm font-medium text-[#ff2947] shadow-sm"
-          >
-            Generar solicitud
-          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-3">

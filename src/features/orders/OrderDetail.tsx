@@ -130,7 +130,7 @@ export function OrderDetail() {
       {/* Header */}
       <div className="bg-[#f7f8fb] pt-6 px-4 pb-0 flex flex-col gap-8">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/inventario/ordenes')}
           className="w-6 h-6 flex items-center justify-center"
           aria-label="Volver"
         >
@@ -215,12 +215,21 @@ export function OrderDetail() {
         <button className="h-10 flex items-center justify-center text-sm font-medium text-[#121e6c]">
           Reportar novedad
         </button>
-        <button
-          onClick={() => navigate(`/inventario/ordenes/${order.id}/confirmar`)}
-          className="h-10 bg-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-white"
-        >
-          Iniciar confirmación
-        </button>
+        {sinConfirmar === 0 ? (
+          <button
+            onClick={() => navigate('/inventario/ordenes')}
+            className="h-10 bg-white rounded-[32px] border border-[#f1f2f6] flex items-center justify-center text-sm font-medium text-[#ff2947]"
+          >
+            Volver
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate(`/inventario/ordenes/${order.id}/confirmar`)}
+            className="h-10 bg-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-white"
+          >
+            Iniciar confirmación
+          </button>
+        )}
       </div>
     </div>
   )
