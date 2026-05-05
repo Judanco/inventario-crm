@@ -111,6 +111,11 @@ export function OrderDetail() {
   const statusCfg = ORDER_STATUS_CONFIG[derivedStatus] ?? { label: derivedStatus, color: 'text-gray-600' }
   const categoryMap = Object.fromEntries((categories ?? []).map((c) => [c.id, c]))
 
+  const serialLines = order.lines.filter((l) => l.isSerializable)
+  const popLines = order.lines.filter((l) => !l.isSerializable)
+  const popTotal = popLines.reduce((sum, l) => sum + l.expectedQty, 0)
+  const popConfirmed = popLines.reduce((sum, l) => sum + l.confirmedQty, 0)
+
   const originLabel =
     order.originType === 'provider'
       ? `Proveedor logístico / ${order.originEmail}`
@@ -184,9 +189,23 @@ export function OrderDetail() {
         <div className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold text-[#121e6c] leading-5">Artículos</h2>
           <div className="flex flex-col gap-3">
-            {order.lines.map((line) => (
+            {serialLines.map((line) => (
               <LineCard key={line.id} line={line} category={categoryMap[line.categoryId]} />
             ))}
+            {popTotal > 0 && (
+              <div className="bg-white rounded-2xl pl-3 pr-2 py-3 flex gap-3 items-center">
+                <div className="shrink-0 w-8 h-8" />
+                <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <p className="text-sm font-bold text-[#121e6c] leading-5">{popTotal} Material PoP</p>
+                  <p className="text-[12px] text-[#1e1e1e] leading-4">{popConfirmed}/{popTotal} confirmados</p>
+                </div>
+                <div className="shrink-0 w-6 h-6 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18L15 12L9 6" stroke="#121e6c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

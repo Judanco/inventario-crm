@@ -1,13 +1,67 @@
 import { useState } from 'react'
 import { Outlet, useMatch, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useInventoryOverview } from './hooks/useInventory'
 import { NavTabs } from './components/NavTabs'
 import { CategoryCard } from './components/CategoryCard'
+import { useAssignmentDraft } from '../../store/assignmentDraft'
+import {
+  findDraftAssignment,
+  createDraftAssignment,
+  deleteDraftAssignment,
+} from '../../data/api'
+import { assignments } from '../../data/fixtures'
 
 export function InventoryOverview() {
   const isRoot = useMatch('/inventario')
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [fabOpen, setFabOpen] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [pendingDraftId, setPendingDraftId] = useState<string | null>(null)
+  const draftStore = useAssignmentDraft()
+
+  async function handleReasignacion() {
+    setFabOpen(false)
+    const existingDraft = findDraftAssignment()
+    if (existingDraft) {
+      setPendingDraftId(existingDraft.id)
+      setShowModal(true)
+    } else {
+      const draft = await createDraftAssignment()
+      queryClient.invalidateQueries({ queryKey: ['assignments'] })
+      draftStore.startDraft(draft.id)
+      navigate('/inventario/asignaciones/nueva')
+    }
+  }
+
+  async function handleResume() {
+    setShowModal(false)
+    if (pendingDraftId) {
+      if (draftStore.draftId !== pendingDraftId) {
+        const draft = assignments.find((a) => a.id === pendingDraftId)
+        if (draft) {
+          draftStore.startDraft(draft.id)
+          if (draft.destinationHolderId && draft.destinationEmail) {
+            draftStore.setDestination(draft.destinationHolderId, draft.destinationEmail)
+          }
+        }
+      }
+      navigate('/inventario/asignaciones/nueva')
+    }
+  }
+
+  async function handleCreateNew() {
+    setShowModal(false)
+    if (pendingDraftId) {
+      await deleteDraftAssignment(pendingDraftId)
+      queryClient.invalidateQueries({ queryKey: ['assignments'] })
+    }
+    const draft = await createDraftAssignment()
+    queryClient.invalidateQueries({ queryKey: ['assignments'] })
+    draftStore.startDraft(draft.id)
+    navigate('/inventario/asignaciones/nueva')
+  }
 
   return (
     <div className="relative min-h-screen bg-[#f7f8fb] flex flex-col">
@@ -21,7 +75,6 @@ export function InventoryOverview() {
             className="w-6 h-6 flex items-center justify-center"
             aria-label="Volver"
           >
-            {/* Left-pointing chevron inline SVG */}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M15 18L9 12L15 6"
@@ -37,7 +90,6 @@ export function InventoryOverview() {
             <h1 className="text-[20px] font-bold leading-6 text-[#121e6c]">
               Inventario
             </h1>
-            {/* Tab navigation */}
             <NavTabs />
           </div>
         </div>
@@ -52,7 +104,7 @@ export function InventoryOverview() {
       <div className="fixed bottom-8 right-8 flex flex-col items-end gap-2.5">
         {fabOpen && (
           <button
-            onClick={() => { setFabOpen(false); navigate('/inventario/asignaciones/nueva') }}
+            onClick={handleReasignacion}
             className="bg-[#ff2947] rounded-[32px] px-5 h-11 flex items-center justify-center text-white text-base font-bold shadow-lg whitespace-nowrap"
           >
             Reasignación
@@ -74,6 +126,70 @@ export function InventoryOverview() {
           )}
         </button>
       </div>
+
+      {/* Draft modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-[#1e1e1e] opacity-70"
+            onClick={() => setShowModal(false)}
+          />
+          {/* Card */}
+          <div className="relative bg-white rounded-[24px] w-[288px] px-4 pt-[60px] pb-8 flex flex-col gap-6 items-center shadow-[0px_8px_10px_rgba(0,0,0,0.08)]">
+            {/* Close */}
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-5 right-4 w-6 h-6 flex items-center justify-center"
+              aria-label="Cerrar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="#1e1e1e" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+
+            {/* Content */}
+            <div className="flex flex-col gap-4 items-center w-full">
+              {/* Warning icon */}
+              <div className="w-9 h-9 flex items-center justify-center">
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                  <circle cx="18" cy="18" r="18" fill="#FFF3CD" />
+                  <path d="M18 12v7" stroke="#F5A623" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="18" cy="23" r="1.5" fill="#F5A623" />
+                </svg>
+              </div>
+              <p className="text-base font-semibold text-[#1e1e1e] text-center leading-5">
+                Ya hay una asignación en proceso
+              </p>
+              <p className="text-base font-normal text-[#1e1e1e] text-center leading-5">
+                ¿Quieres retomarla o crear una nueva?
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-4 w-full">
+              <button
+                onClick={handleResume}
+                className="w-full h-11 bg-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-white"
+              >
+                Retomar asignación
+              </button>
+              <button
+                onClick={handleCreateNew}
+                className="w-full h-11 bg-white border border-[#ff2947] rounded-[32px] flex items-center justify-center text-sm font-medium text-[#ff2947]"
+              >
+                Crear nueva asignación
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full h-11 flex items-center justify-center text-sm font-medium text-[#121e6c]"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -127,7 +243,6 @@ function InventoryGeneralTab() {
 
       {/* Artículos confirmados */}
       <div className="flex flex-col gap-2">
-        {/* Section header */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-[#121e6c] leading-5">
             Artículos confirmados
@@ -141,7 +256,6 @@ function InventoryGeneralTab() {
           </button>
         </div>
 
-        {/* Category cards */}
         <div className="flex flex-col gap-3">
           {overview.byCategory.map((s) => (
             <CategoryCard key={s.category.id} summary={s} />

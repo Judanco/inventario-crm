@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface DraftSerialLine {
   categoryId: string
@@ -11,12 +12,15 @@ interface DraftPopLine {
 }
 
 interface AssignmentDraftState {
+  draftId: string | null
   destinationEmail: string
   destinationHolderId: string
   serialLines: DraftSerialLine[]
   popLines: DraftPopLine[]
   toast: string | null
 
+  setDraftId: (id: string) => void
+  startDraft: (id: string) => void
   setDestination: (id: string, email: string) => void
   addSerial: (categoryId: string, serial: string) => void
   removeSerial: (categoryId: string, serial: string) => void
@@ -27,6 +31,7 @@ interface AssignmentDraftState {
 }
 
 const empty = {
+  draftId: null as string | null,
   destinationEmail: '',
   destinationHolderId: '',
   serialLines: [] as DraftSerialLine[],
@@ -34,55 +39,72 @@ const empty = {
   toast: null as string | null,
 }
 
-export const useAssignmentDraft = create<AssignmentDraftState>((set) => ({
-  ...empty,
+export const useAssignmentDraft = create<AssignmentDraftState>()(
+  persist(
+    (set) => ({
+      ...empty,
 
-  setDestination: (id, email) =>
-    set({ destinationHolderId: id, destinationEmail: email }),
+      setDraftId: (id) => set({ draftId: id }),
+      startDraft: (id) => set({ ...empty, draftId: id }),
 
-  addSerial: (categoryId, serial) =>
-    set((s) => {
-      const existing = s.serialLines.find((l) => l.categoryId === categoryId)
-      if (existing) {
-        return {
-          serialLines: s.serialLines.map((l) =>
-            l.categoryId === categoryId
-              ? { ...l, serials: [...new Set([...l.serials, serial])] }
-              : l,
-          ),
-        }
-      }
-      return { serialLines: [...s.serialLines, { categoryId, serials: [serial] }] }
+      setDestination: (id, email) =>
+        set({ destinationHolderId: id, destinationEmail: email }),
+
+      addSerial: (categoryId, serial) =>
+        set((s) => {
+          const existing = s.serialLines.find((l) => l.categoryId === categoryId)
+          if (existing) {
+            return {
+              serialLines: s.serialLines.map((l) =>
+                l.categoryId === categoryId
+                  ? { ...l, serials: [...new Set([...l.serials, serial])] }
+                  : l,
+              ),
+            }
+          }
+          return { serialLines: [...s.serialLines, { categoryId, serials: [serial] }] }
+        }),
+
+      removeSerial: (categoryId, serial) =>
+        set((s) => ({
+          serialLines: s.serialLines
+            .map((l) =>
+              l.categoryId === categoryId
+                ? { ...l, serials: l.serials.filter((sr) => sr !== serial) }
+                : l,
+            )
+            .filter((l) => l.serials.length > 0),
+        })),
+
+      setPopQty: (categoryId, qty) =>
+        set((s) => {
+          if (qty <= 0) {
+            return { popLines: s.popLines.filter((l) => l.categoryId !== categoryId) }
+          }
+          const existing = s.popLines.find((l) => l.categoryId === categoryId)
+          if (existing) {
+            return {
+              popLines: s.popLines.map((l) =>
+                l.categoryId === categoryId ? { ...l, quantity: qty } : l,
+              ),
+            }
+          }
+          return { popLines: [...s.popLines, { categoryId, quantity: qty }] }
+        }),
+
+      setToast: (msg) => set({ toast: msg }),
+      clearToast: () => set({ toast: null }),
+      reset: () => set(empty),
     }),
-
-  removeSerial: (categoryId, serial) =>
-    set((s) => ({
-      serialLines: s.serialLines
-        .map((l) =>
-          l.categoryId === categoryId
-            ? { ...l, serials: l.serials.filter((sr) => sr !== serial) }
-            : l,
-        )
-        .filter((l) => l.serials.length > 0),
-    })),
-
-  setPopQty: (categoryId, qty) =>
-    set((s) => {
-      if (qty <= 0) {
-        return { popLines: s.popLines.filter((l) => l.categoryId !== categoryId) }
-      }
-      const existing = s.popLines.find((l) => l.categoryId === categoryId)
-      if (existing) {
-        return {
-          popLines: s.popLines.map((l) =>
-            l.categoryId === categoryId ? { ...l, quantity: qty } : l,
-          ),
-        }
-      }
-      return { popLines: [...s.popLines, { categoryId, quantity: qty }] }
-    }),
-
-  setToast: (msg) => set({ toast: msg }),
-  clearToast: () => set({ toast: null }),
-  reset: () => set(empty),
-}))
+    {
+      name: 'assignment-draft',
+      partialize: (s) => ({
+        draftId: s.draftId,
+        destinationEmail: s.destinationEmail,
+        destinationHolderId: s.destinationHolderId,
+        serialLines: s.serialLines,
+        popLines: s.popLines,
+      }),
+    },
+  ),
+)

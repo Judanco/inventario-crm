@@ -8,7 +8,7 @@ import {
   holders,
   CURRENT_USER_ID,
 } from './fixtures'
-import type { Order, OrderLine } from '../domain/types'
+import type { Order, OrderLine, Assignment, AssignmentLine } from '../domain/types'
 
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
 
@@ -81,9 +81,107 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 
 // ─── Assignments ──────────────────────────────────────────────────────────────
 
+const ASSIGNMENTS_KEY = 'assignments-data'
+
+function syncAssignments() {
+  localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(assignments))
+}
+
 export async function fetchAssignments(holderId = CURRENT_USER_ID) {
   await delay()
+  try {
+    const raw = localStorage.getItem(ASSIGNMENTS_KEY)
+    if (raw) assignments.splice(0, assignments.length, ...JSON.parse(raw))
+  } catch {}
   return assignments.filter((a) => a.originHolderId === holderId)
+}
+
+export function findDraftAssignment(holderId = CURRENT_USER_ID) {
+  return assignments.find(
+    (a) => a.originHolderId === holderId && a.status === 'enBorrador',
+  ) ?? null
+}
+
+export async function createDraftAssignment(holderId = CURRENT_USER_ID) {
+  await delay(100)
+  const draft = {
+    id: `ASGN-${Date.now()}`,
+    originHolderId: holderId,
+    destinationHolderId: null,
+    destinationEmail: null,
+    lines: [],
+    status: 'enBorrador' as const,
+    createdAt: new Date().toISOString(),
+    expirationDate: null,
+  }
+  assignments.push(draft)
+  syncAssignments()
+  return { ...draft }
+}
+
+export async function deleteDraftAssignment(id: string) {
+  await delay(100)
+  const idx = assignments.findIndex((a) => a.id === id)
+  if (idx !== -1) assignments.splice(idx, 1)
+  syncAssignments()
+}
+
+export async function updateAssignmentStatus(id: string, status: Assignment['status']) {
+  await delay(100)
+  const asgn = assignments.find((a) => a.id === id)
+  if (!asgn) throw new Error('Assignment not found')
+  asgn.status = status
+  syncAssignments()
+  return { ...asgn }
+}
+
+export async function confirmDraft(
+  id: string,
+  destinationHolderId: string | null,
+  destinationEmail: string | null,
+  lines: AssignmentLine[] = [],
+  holderId = CURRENT_USER_ID,
+) {
+  await delay(100)
+  const existing = assignments.find((a) => a.id === id)
+  if (existing) {
+    existing.status = 'pendiente'
+    existing.destinationHolderId = destinationHolderId
+    existing.destinationEmail = destinationEmail
+    existing.lines = lines
+  } else {
+    assignments.push({
+      id,
+      originHolderId: holderId,
+      destinationHolderId,
+      destinationEmail,
+      lines,
+      status: 'pendiente',
+      createdAt: new Date().toISOString(),
+      expirationDate: null,
+    })
+  }
+  syncAssignments()
+  return assignments.find((a) => a.id === id)!
+}
+
+export async function fetchAssignment(id: string) {
+  await delay()
+  try {
+    const raw = localStorage.getItem(ASSIGNMENTS_KEY)
+    if (raw) assignments.splice(0, assignments.length, ...JSON.parse(raw))
+  } catch {}
+  return assignments.find((a) => a.id === id) ?? null
+}
+
+export async function updateAssignmentDestination(id: string, holderId: string, email: string) {
+  await delay(100)
+  const asgn = assignments.find((a) => a.id === id)
+  if (!asgn) throw new Error('Assignment not found')
+  asgn.destinationHolderId = holderId
+  asgn.destinationEmail = email
+  syncAssignments()
+  return { ...asgn }
 }
 
 export async function fetchHolders() {

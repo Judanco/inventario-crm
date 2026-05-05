@@ -8,8 +8,11 @@ import { OrderConfirmation } from './features/orders/OrderConfirmation'
 import { PopPartialConfirmation } from './features/orders/PopPartialConfirmation'
 import { SerialScannerScreen } from './features/orders/SerialScannerScreen'
 import { AssignmentList } from './features/assignments/AssignmentList'
+import { AssignmentDetail } from './features/assignments/AssignmentDetail'
 import { NewAssignment } from './features/assignments/NewAssignment'
 import { AssignDestino } from './features/assignments/AssignDestino'
+import { NewPopItem } from './features/assignments/NewPopItem'
+import { AssignSerialScanner } from './features/assignments/AssignSerialScanner'
 import { MovementHistory } from './features/movements/MovementHistory'
 
 const queryClient = new QueryClient({
@@ -34,8 +37,11 @@ export default function App() {
             <Route path="/inventario/ordenes/:orderId/confirmar"  element={<OrderConfirmation />} />
             <Route path="/inventario/ordenes/:orderId/confirmar/:lineId/parcial" element={<PopPartialConfirmation />} />
             <Route path="/inventario/ordenes/:orderId/confirmar/escanear" element={<SerialScannerScreen />} />
+            <Route path="/inventario/asignaciones/:assignmentId" element={<AssignmentDetail />} />
             <Route path="/inventario/asignaciones/nueva" element={<NewAssignment />} />
             <Route path="/inventario/asignaciones/nueva/destino" element={<AssignDestino />} />
+            <Route path="/inventario/asignaciones/nueva/pop" element={<NewPopItem />} />
+            <Route path="/inventario/asignaciones/nueva/serial" element={<AssignSerialScanner />} />
           </Route>
         </Routes>
       </BrowserRouter>
