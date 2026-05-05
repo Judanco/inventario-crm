@@ -209,20 +209,18 @@ export function AssignSerialScanner() {
           Escanea los seriales que deseas incluir en la asignación.
         </p>
 
-        {import.meta.env.DEV && (
-          <button
-            onClick={() =>
-              handleScan(
-                devRemaining.length > 0
-                  ? devRemaining[Math.floor(Math.random() * devRemaining.length)]
-                  : '__invalid__',
-              )
-            }
-            className="self-center px-4 py-2 rounded-xl border border-dashed border-gray-400 text-[12px] text-gray-500"
-          >
-            Simular escaneo
-          </button>
-        )}
+        <button
+          onClick={() =>
+            handleScan(
+              devRemaining.length > 0
+                ? devRemaining[Math.floor(Math.random() * devRemaining.length)]
+                : '__invalid__',
+            )
+          }
+          className="self-center px-4 py-2 rounded-xl border border-dashed border-gray-400 text-[12px] text-gray-500"
+        >
+          Simular escaneo
+        </button>
       </div>
 
       {/* Bottom */}
